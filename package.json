@@ -12,21 +12,53 @@
     "design",
     "vite plugin"
   ],
+  "main": "./dist/vite-plugin-ddkj-tools.umd.js",
+  "module": "./dist/vite-plugin-ddkj-tools.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/vite-plugin-ddkj-tools.es.js",
+      "require": "./dist/vite-plugin-ddkj-tools.umd.js"
+    }
+  },
+  "style": "dist/vite-plugin-ddkj-tools.css",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manwangbin/vite-plugin-ddkj-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/manwangbin/vite-plugin-ddkj-tools/issues"
+  },
+  "homepage": "https://github.com/manwangbin/vite-plugin-ddkj-tools",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "pnpm clean & pnpm run build:lib",
+    "preview": "vite preview",
+    "clean": "rimraf ./dist",
+    "build:lib": "pnpm run build:es & pnpm run build:browser",
+    "build:es": "vite build",
+    "build:browser": "vite -f iife build"
   },
   "dependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
     "@vue/compiler-sfc": "^3.5.13",
     "es-module-lexer": "^1.5.4",
+    "postcss-import": "^14.1.0",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@types/node": "^22.10.1",
     "@vitejs/plugin-vue": "^5.2.1",
     "less": "^4.2.1",
-    "typescript": "~5.6.2",
-    "vite": "^6.0.0",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.3",
+    "unplugin-vue-define-options": "^1.5.2",
+    "vite": "^6.0.1",
+    "vite-plugin-dts": "^4.3.0",
     "vue-tsc": "^2.1.10"
   }
 }

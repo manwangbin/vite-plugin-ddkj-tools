@@ -3,12 +3,11 @@ import { parse} from "@vue/compiler-sfc";
 
 function parseAppFile(id: string, code: string):string {
     const res = parse(code, {sourceMap: false, filename: id, templateParseOptions: {parseMode: 'sfc'}});
-    // console.log("parse template res ", res.descriptor);
-    let script = "<script setup lang=\"ts\">\nimport DevTools from './components/DevTools.vue';";
+    let script = "<script setup lang=\"ts\">\nimport { DevTools } from 'vite-plugin-ddkj-tools';";
     if (res.descriptor.scriptSetup?.content) {
         script += res.descriptor.scriptSetup?.content;
     }
-    script += "</script>"
+    script += "\n</script>"
 
     let template = "<template>\n";
     if (res.descriptor.template?.content) {
@@ -36,13 +35,11 @@ function parseAppFile(id: string, code: string):string {
         });
     }
 
-    const newCode = script + "\n" + template + "\n" + styles;
-    console.log("parse newcode", newCode);
+    const newCode = script + "\n" + template + "\n" + styles;    
     return newCode;
 }
 
-export function ddkjDevTools(): Plugin {
-
+export default function ddkjDevTools(): Plugin {
     return {
         name: 'vite-plugin-ddkj-dev-tools',
         apply: 'serve',
