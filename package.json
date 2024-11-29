@@ -1,0 +1,32 @@
+{
+  "name": "vite-plugin-ddkj-tools",
+  "private": false,
+  "version": "0.0.1",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "franciswang"
+  },
+  "keywords": [
+    "vue3",
+    "design",
+    "vite plugin"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vue/compiler-sfc": "^3.5.13",
+    "es-module-lexer": "^1.5.4",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "less": "^4.2.1",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.0",
+    "vue-tsc": "^2.1.10"
+  }
+}
