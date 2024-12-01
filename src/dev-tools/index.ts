@@ -1,8 +1,8 @@
 import { default as  withInstall } from '@/utils';
 import DevTools from './DevTools.vue';
 
-const VDevTools = withInstall(DevTools)
+const TDevTools = withInstall(DevTools)
 export {
-    DevTools as VDevTools
+    DevTools as TDevTools
 }
-export default VDevTools
+export default TDevTools

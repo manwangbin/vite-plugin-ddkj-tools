@@ -1,8 +1,8 @@
-import ddkjDevTools from './ddkj-dev-tools';
-import DevTools, { VDevTools } from './dev-tools';
+import ddkjDevTools from './ddkj';
+import DevTools, { TDevTools } from './dev-tools';
 import { App, Plugin } from 'vue';
 
-export { ddkjDevTools, VDevTools }
+export { ddkjDevTools, TDevTools }
 
 const components = [DevTools];
 export default {
