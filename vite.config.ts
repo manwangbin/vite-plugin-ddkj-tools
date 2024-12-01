@@ -1,18 +1,26 @@
 import { defineConfig } from 'vite';
-import { URL, fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue';
 import dts from 'vite-plugin-dts';
+import { resolve } from 'path';
+import path from 'path';
+
+function pathResolve (dir: string) {
+  return resolve(process.cwd(), '.', dir)
+}
 
 export default defineConfig({
   resolve: {
-    alias: {
-      '~': fileURLToPath(new URL('./', import.meta.url)),
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+    alias: [
+      { find: /^~/, replacement: resolve(__dirname, '') },
+      {
+        find: /^@\//,
+        replacement: `${pathResolve('src')}/`
+      }
+    ]
   },
   build: {
     lib: {
-      entry:  './src/index.ts', // 设置入口文件
+      entry: path.resolve(__dirname, './src/index.ts'), // 设置入口文件
       name: 'vite-plugin-ddkj-tools', // 起个名字，安装、引入用
       fileName: (format) => `vite-plugin-ddkj-tools.${format}.js`, // 打包后的文件名
     },

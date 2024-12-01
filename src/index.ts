@@ -1,2 +1,15 @@
-export { default as ddkjDevTools} from './vite-plugin-ddkj-dev-tools';
-export { default as DevTools } from './components/dev-tools';
+import ddkjDevTools from './ddkj-dev-tools';
+import DevTools, { VDevTools } from './dev-tools';
+import { App, Plugin } from 'vue';
+
+export { ddkjDevTools, VDevTools }
+
+const components = [DevTools];
+export default {
+    install: (app: App) => {
+        components.forEach((component) => {
+            app.use(component);
+        });
+    },
+} as Plugin;
+

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import HelloWorld from './components/HelloWorld.vue';
-import {DevTools} from 'vite-plugin-ddkj-tools';
+import { VDevTools } from 'vite-plugin-ddkj-tools';
+import 'vite-plugin-ddkj-tools/dist/vite-plugin-ddkj-tools.css';
 
 const test = () => {
   console.log("test");
-  
 }
 
 onMounted(() => {
@@ -23,7 +23,7 @@ onMounted(() => {
     </a>
   </div>
   <HelloWorld msg="Vite + Vue" />
-  <DevTools />
+  <VDevTools />
 </template>
 
 <style lang="less" scoped>

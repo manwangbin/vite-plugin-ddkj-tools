@@ -15,13 +15,7 @@
   "main": "./dist/vite-plugin-ddkj-tools.umd.js",
   "module": "./dist/vite-plugin-ddkj-tools.es.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/vite-plugin-ddkj-tools.es.js",
-      "require": "./dist/vite-plugin-ddkj-tools.umd.js"
-    }
-  },
-  "style": "dist/vite-plugin-ddkj-tools.css",
+  "style": "./dist/vite-plugin-ddkj-tools.css",
   "files": [
     "dist"
   ],

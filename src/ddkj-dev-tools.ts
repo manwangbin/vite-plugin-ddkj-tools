@@ -3,7 +3,8 @@ import { parse} from "@vue/compiler-sfc";
 
 function parseAppFile(id: string, code: string):string {
     const res = parse(code, {sourceMap: false, filename: id, templateParseOptions: {parseMode: 'sfc'}});
-    let script = "<script setup lang=\"ts\">\nimport { DevTools } from 'vite-plugin-ddkj-tools';";
+    let script = "<script setup lang=\"ts\">\nimport { DevTools } from 'vite-plugin-ddkj-tools';\n";
+    script += "import 'vite-plugin-ddkj-tools\dist\vite-plugin-ddkj-tools.css';\n";
     if (res.descriptor.scriptSetup?.content) {
         script += res.descriptor.scriptSetup?.content;
     }
