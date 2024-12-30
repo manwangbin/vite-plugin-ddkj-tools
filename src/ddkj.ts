@@ -1,14 +1,17 @@
 import { Plugin } from "vite";
-import { parse} from "@vue/compiler-sfc";
+import { parse } from "@vue/compiler-sfc";
 
-function parseAppFile(id: string, code: string):string {
-    const res = parse(code, {sourceMap: false, filename: id, templateParseOptions: {parseMode: 'sfc'}});
-    let script = "<script setup lang=\"ts\">\nimport { TDevTools } from 'vite-plugin-ddkj-tools';\n";
-    script += "import 'vite-plugin-ddkj-tools\dist\vite-plugin-ddkj-tools.css';\n";
+function loadAppFile(code: string, id: string) {
+    const res = parse(code, { sourceMap: false, filename: id, templateParseOptions: { parseMode: 'sfc' } });
+    let script = "<script setup lang=\"ts\">";
+    script += "\nimport { TDevTools, ddkjWsReject } from 'vite-plugin-ddkj-tools';";
+    script += "\nddkjWsReject(import.meta.hot);";
+    
     if (res.descriptor.scriptSetup?.content) {
         script += res.descriptor.scriptSetup?.content;
     }
-    script += "\n</script>"
+    script += "\nimport 'vite-plugin-ddkj-tools/dist/vite-plugin-ddkj-tools.css';";
+    script += "\n</script>";
 
     let template = "<template>\n";
     if (res.descriptor.template?.content) {
@@ -20,7 +23,7 @@ function parseAppFile(id: string, code: string):string {
     let styles = '';
     if (res.descriptor.styles) {
         res.descriptor.styles.forEach(style => {
-            let styleContent = "<style";
+            let styleContent = "\n<style";
             if (style.lang) {
                 styleContent += " lang=\"" + style.lang + "\"";
             }
@@ -30,30 +33,41 @@ function parseAppFile(id: string, code: string):string {
             styleContent += ">";
 
             styleContent += style.content;
-            styleContent += "</style>\n";
+            styleContent += "</style>";
 
             styles += styleContent;
         });
     }
 
-    const newCode = script + "\n" + template + "\n" + styles;    
-    return newCode;
+    const newCode = script + "\n" + template + "\n" + styles;
+    return { code: newCode };
 }
 
 export default function ddkjDevTools(): Plugin {
     return {
-        name: 'vite-plugin-ddkj-dev-tools',
+        name: 'vite-plugin-ddkj-tools',
         apply: 'serve',
-        transform(code: string, id: string, options: any) {
+        enforce: "pre",
+        transform(code: string, id: string, options) {
             if (options?.ssr) {
                 return;
             }
 
             if (id.endsWith("App.vue")) {
-                return parseAppFile(id, code);
+                return loadAppFile(code, id);
             }
+        },
+        configureServer(server) {
+            server.ws.on('connection', (client) => {
+                setInterval(() => {
+                    server.ws.send('my:greetings', { msg: 'hello' })
+                }, 4000);
+            });
 
-            return code;
-        }
+            server.ws.on('my:from-client', (data, client) => {
+                // console.log("recive", data);
+            })
+        },
+        sharedDuringBuild: true,
     }
 }

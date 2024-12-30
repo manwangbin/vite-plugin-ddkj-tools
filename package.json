@@ -12,10 +12,9 @@
     "design",
     "vite plugin"
   ],
-  "main": "./dist/vite-plugin-ddkj-tools.umd.js",
-  "module": "./dist/vite-plugin-ddkj-tools.es.js",
-  "types": "./dist/index.d.ts",
-  "style": "./dist/vite-plugin-ddkj-tools.css",
+  "main": "dist/vite-plugin-ddkj-tools.umd.cjs",
+  "module": "dist/vite-plugin-ddkj-tools.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -29,7 +28,7 @@
   "homepage": "https://github.com/manwangbin/vite-plugin-ddkj-tools",
   "scripts": {
     "dev": "vite",
-    "build": "pnpm clean & pnpm run build:lib",
+    "build": "vite build",
     "preview": "vite preview",
     "clean": "rimraf ./dist",
     "build:lib": "pnpm run build:es & pnpm run build:browser",
@@ -37,22 +36,33 @@
     "build:browser": "vite -f iife build"
   },
   "dependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
     "@vue/compiler-sfc": "^3.5.13",
+    "@vueuse/core": "^12.0.0",
+    "ant-design-vue": "4.x",
     "es-module-lexer": "^1.5.4",
     "postcss-import": "^14.1.0",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@iconify/json": "^2.2.278",
+    "@iconify/vue": "^4.1.2",
+    "@rollup/plugin-terser": "^0.4.4",
     "@types/node": "^22.10.1",
+    "@vitejs/plugin-legacy": "^6.0.0",
     "@vitejs/plugin-vue": "^5.2.1",
+    "antd-theme-generator": "^1.2.11",
     "less": "^4.2.1",
+    "markdown-it": "^14.1.0",
+    "reset": "link:unocss,@unocss/reset",
     "rimraf": "^6.0.1",
     "tsx": "^4.19.2",
     "typescript": "~5.6.3",
-    "unplugin-vue-define-options": "^1.5.2",
+    "unocss": "0.65.0-beta.3",
     "vite": "^6.0.1",
     "vite-plugin-dts": "^4.3.0",
+    "vite-plugin-inspect": "^0.10.2",
+    "vue-loader": "^17.4.2",
+    "vue-template-compiler": "^2.7.16",
     "vue-tsc": "^2.1.10"
   }
 }

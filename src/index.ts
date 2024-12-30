@@ -1,15 +1,6 @@
 import ddkjDevTools from './ddkj';
-import DevTools, { TDevTools } from './dev-tools';
-import { App, Plugin } from 'vue';
+import { TDevTools } from './client/views/dev-tools';
+import ddkjWsReject from './client/api/ws.api';
+import 'virtual:uno.css'
 
-export { ddkjDevTools, TDevTools }
-
-const components = [DevTools];
-export default {
-    install: (app: App) => {
-        components.forEach((component) => {
-            app.use(component);
-        });
-    },
-} as Plugin;
-
+export { ddkjDevTools, ddkjWsReject, TDevTools }

@@ -28,5 +28,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/ddkj.ts", "src/ddkj.ts", "src/index.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "example/**/*.ts", "example/**/*.tsx", "example/**/*.vue"],
+  "exclude": ["node_modules"]
 }

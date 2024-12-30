@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import HelloWorld from './components/HelloWorld.vue';
-import { VDevTools } from 'vite-plugin-ddkj-tools';
-import 'vite-plugin-ddkj-tools/dist/vite-plugin-ddkj-tools.css';
 
 const test = () => {
   console.log("test");
 }
 
 onMounted(() => {
-  test();
+  test();  
 })
 </script>
 
@@ -23,7 +21,6 @@ onMounted(() => {
     </a>
   </div>
   <HelloWorld msg="Vite + Vue" />
-  <VDevTools />
 </template>
 
 <style lang="less" scoped>
