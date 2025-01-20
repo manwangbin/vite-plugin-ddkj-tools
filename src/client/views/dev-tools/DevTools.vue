@@ -4,6 +4,7 @@ import { useResizeObserver } from "@vueuse/core";
 import { Icon } from '@iconify/vue';
 import { Tooltip, Input, Tag, Divider } from 'ant-design-vue';
 import MenuDialog from '../menu/MenuDialog.vue';
+import ModalDialog from '../modal/ModalDialog.vue';
 
 const screenWidth = ref(document.body.clientWidth);
 window.onresize = () => {
@@ -36,6 +37,13 @@ function openTreeDialog() {
     menuDialog.value.openMenu();
   }
 }
+
+const modalDialog = ref();
+function openModalDialog() {
+  if (modalDialog.value) {
+    modalDialog.value.openModal();
+  }
+}
 </script>
 
 <template>
@@ -48,7 +56,7 @@ function openTreeDialog() {
 
         <div class="flex flex-row justify-end items-center">
           <span style="color: #666;padding-right: 6px;">常用</span>
-          <Tag class="cytag" color="#f50">新数据管理</Tag>
+          <Tag class="cytag" color="#f50" @click="openModalDialog">新数据管理</Tag>
         </div>
 
         <Divider type="vertical" />
@@ -72,6 +80,7 @@ function openTreeDialog() {
     </div>
 
     <MenuDialog ref="menuDialog" />
+    <ModalDialog ref="modalDialog" />
   </div>
 </template>
 
