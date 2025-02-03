@@ -41,7 +41,7 @@ function openTreeDialog() {
 const modalDialog = ref();
 function openModalDialog() {
   if (modalDialog.value) {
-    modalDialog.value.openModal();
+    modalDialog.value.openModalDialog();
   }
 }
 </script>

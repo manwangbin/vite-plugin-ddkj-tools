@@ -57,15 +57,14 @@ export default function ddkjDevTools(): Plugin {
                 return loadAppFile(code, id);
             }
         },
+
         configureServer(server) {
             server.ws.on('connection', (client) => {
-                setInterval(() => {
-                    server.ws.send('my:greetings', { msg: 'hello' })
-                }, 4000);
+             
             });
 
             server.ws.on('my:from-client', (data, client) => {
-                // console.log("recive", data);
+                console.log("recive", data);
             })
         },
         sharedDuringBuild: true,
