@@ -1,5 +1,6 @@
-import { isObject, isString } from '@sa/utils';
+import { isObject, isString } from '@/client/utils/is';
 import { md5 } from 'js-md5';
+import { Recordable } from './type';
 
 const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 

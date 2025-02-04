@@ -26,6 +26,9 @@ importers:
       es-module-lexer:
         specifier: ^1.5.4
         version: 1.6.0
+      js-md5:
+        specifier: ^0.8.3
+        version: 0.8.3
       localforage:
         specifier: ^1.10.0
         version: 1.10.0
@@ -1962,6 +1965,9 @@ packages:
 
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==, tarball: https://registry.npmmirror.com/jju/-/jju-1.4.0.tgz}
+
+  js-md5@0.8.3:
+    resolution: {integrity: sha512-qR0HB5uP6wCuRMrWPTrkMaev7MJZwJuuw4fnwAzRgP4J4/F8RwtodOKpGp4XpqsLBFzzgqIO42efFAyz2Et6KQ==, tarball: https://registry.npmmirror.com/js-md5/-/js-md5-0.8.3.tgz}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==, tarball: https://registry.npmmirror.com/js-tokens/-/js-tokens-4.0.0.tgz}
@@ -4727,6 +4733,8 @@ snapshots:
   jiti@2.0.0-beta.3: {}
 
   jju@1.4.0: {}
+
+  js-md5@0.8.3: {}
 
   js-tokens@4.0.0: {}
 

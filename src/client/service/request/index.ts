@@ -8,13 +8,13 @@ import type { AxiosTransform, CreateAxiosOptions } from './axiosTransform';
 import { isString } from '@/client/utils/is';
 import { deepMerge } from '@/client/utils/object';
 import { Modal, message } from 'ant-design-vue';
-import { localStg } from '@/utils/storage';
+import { localStg } from '@/client/utils/storage';
 import { checkStatus } from './checkStatus';
 import { createParamSign, formatRequestDate } from './helper';
 import qs from 'qs';
 
-const API_SALT = import.meta.env.VITE_GLOB_API_SALT;
-const API_BASE_URl = import.meta.env.VITE_GLOB_API_URL;
+const API_SALT = 'ddkj@tuweisoft.com';
+const API_BASE_URl = 'http://127.0.0.1:8002/api/';
 
 /** @description: 数据处理，方便区分多种处理方式 */
 
@@ -23,7 +23,7 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
     /** @description: 处理响应数据。如果数据不是预期格式，可直接抛出错误 */
     transformResponseHook: (res: AxiosResponse<ResultData>, options: RequestOptions) => {
       if (res.headers.token) {
-        localStg.set('ddkjtools-token', res.headers.token)
+        localStg.set('ddkjtoolsToken', res.headers.token)
       }
 
       const { data } = res;
@@ -57,7 +57,7 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
       (config as Recordable).headers.sign = createParamSign(params, time, API_SALT);
 
       formatDate && data && !isString(data) && formatRequestDate(data);
-      const token = localStg.get('proadminToken');
+      const token = localStg.get('ddkjtoolsToken');
       if (token) {
         (config as Recordable).headers.Authorization = `Bearer ${token}`;
       }
@@ -115,8 +115,8 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
             fileName = "download.txt"
         }
         const blob = new Blob([res.data], { type: 'application/octet-stream' })
-        if (typeof window.navigator.msSaveBlob !== 'undefined') {
-            window.navigator.msSaveBlob(blob, fileName)
+        if (typeof (window.navigator as any).msSaveBlob !== 'undefined') {
+          (window.navigator as any).msSaveBlob(blob, fileName)
         } else {
             const blobURL = window.URL.createObjectURL(blob)
             const tempLink = document.createElement('a')
