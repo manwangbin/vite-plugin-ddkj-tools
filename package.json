@@ -31,11 +31,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rimraf ./dist",
-    "build:lib": "pnpm run build:es & pnpm run build:browser",
-    "build:es": "vite build",
+    "build:lib": "pnpm run clean & pnpm run build:es & pnpm run build:browser",
+    "build:es": "tsc && vite build",
     "build:browser": "vite -f iife build"
   },
   "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
     "@vue/compiler-sfc": "^3.5.13",
     "@vueuse/core": "^12.0.0",
     "ant-design-vue": "4.x",

@@ -3,6 +3,12 @@ import type { Auth } from './auth';
 /** The storage namespace */
 declare namespace Storage {
   interface Session {
+    ddkjDesignToken: string;
+    /**token type*/
+    ddkjDesignTokenType: string;
+    /** The user info */
+    userInfo: Auth.AccountInfo;
+
     /** The theme color */
     themeColor: string;
     // /**
@@ -12,13 +18,6 @@ declare namespace Storage {
   }
 
   interface Local {
-    /** The token */
-    ddkjtoolsToken: string;
-    /**token type*/
-    ddkjtoolsTokenType: string;
-    /** The user info */
-    userInfo: Auth.AccountInfo;
-    /** The theme color */
     themeColor: string;
   }
 }

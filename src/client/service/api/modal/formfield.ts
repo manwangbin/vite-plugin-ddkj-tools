@@ -1,19 +1,21 @@
 import Type from "./type/type";
 
 export default interface FormField {
-    code: string;
+    code?: string;
 
-    lable: string;
+    label?: string;
 
-    dbcolumn: string;
+    dbcolumn?: string;
 
     system: boolean;
 
-    type: Type;
+    type?: Type;
 
     primary: boolean;
 
     required: boolean;
 
     unique: boolean;
+
+    help?: string;
 }

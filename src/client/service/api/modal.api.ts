@@ -6,7 +6,7 @@ import ModalTreeNode from "./modal/modal-tree-node";
 
 class ModalApi extends BaseApi<DataForm> {
     constructor() {
-        super('/dataform')
+        super('/tool/form')
     }
 
       /**
@@ -26,17 +26,28 @@ class ModalApi extends BaseApi<DataForm> {
     );
   }
 
+  detail(id: number, mode: ErrorMessageMode = 'modal') {
+    return defHttp.get<ResultData<DataForm>>(
+      {
+        url: `${this.url}/detail`,
+        params: {id}
+      },
+      {
+        errorMessageMode: mode
+      }
+    );
+  }
+
   /**
    * 获取所有模型的树形结构
    * 
    * @param project 
    * @param mode 
    */
-  getModalTrees(project: number, mode: ErrorMessageMode = 'modal') {
+  getModalTrees(mode: ErrorMessageMode = 'modal') {
     return defHttp.get<ResultData<Array<ModalTreeNode>>>(
         {
-          url: this.url,
-          params: {project},
+          url: this.url
         },
         { errorMessageMode: mode }
       );

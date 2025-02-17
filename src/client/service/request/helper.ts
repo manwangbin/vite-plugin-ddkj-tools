@@ -1,5 +1,4 @@
 import { isObject, isString } from '@/client/utils/is';
-import { md5 } from 'js-md5';
 import { Recordable } from './type';
 
 const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
@@ -47,23 +46,23 @@ export function formatRequestDate(params: Recordable) {
   }
 }
 
-export function createParamSign(param: any, time: number, salt: string): string {
-  const signParams = { ...(param || {}) };
-  signParams.time = time;
+// export function createParamSign(param: any, time: number, salt: string): string {
+//   const signParams = { ...(param || {}) };
+//   signParams.time = time;
 
-  const keys = Object.keys(signParams).sort((o1, o2) => (o1 > o2 ? 1 : -1));
-  let signOrg = '';
-  keys.forEach(key => {
-    if (signParams[key] !== null && signParams[key] !== undefined) {
-      const paramValue = signParams[key];
-      if (typeof paramValue === 'object') {
-        signOrg += `${key}=${JSON.stringify(paramValue)}&`;
-      } else {
-        signOrg += `${key}=${paramValue}&`;
-      }
-    }
-  });
+//   const keys = Object.keys(signParams).sort((o1, o2) => (o1 > o2 ? 1 : -1));
+//   let signOrg = '';
+//   keys.forEach(key => {
+//     if (signParams[key] !== null && signParams[key] !== undefined) {
+//       const paramValue = signParams[key];
+//       if (typeof paramValue === 'object') {
+//         signOrg += `${key}=${JSON.stringify(paramValue)}&`;
+//       } else {
+//         signOrg += `${key}=${paramValue}&`;
+//       }
+//     }
+//   });
 
-  signOrg += salt;
-  return md5(signOrg);
-}
+//   signOrg += salt;
+//   return md5(signOrg);
+// }

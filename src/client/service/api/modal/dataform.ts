@@ -1,3 +1,5 @@
+import FormField from "./formfield";
+
 export default interface DataForm {
     id?: number;
     code: string;
@@ -13,4 +15,5 @@ export default interface DataForm {
     persistence?: boolean;
     enabledCache?: boolean;
     note?: string;
+    fields:Array<FormField>;
 }

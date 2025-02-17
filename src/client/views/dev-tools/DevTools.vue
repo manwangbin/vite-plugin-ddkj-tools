@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { computed, reactive, Ref, ref } from 'vue';
+import { computed, h, reactive, Ref, ref } from 'vue';
 import { useResizeObserver } from "@vueuse/core";
 import { Icon } from '@iconify/vue';
-import { Tooltip, Input, Divider, ConfigProvider, theme } from 'ant-design-vue';
+import { Tooltip, Input, Divider, ConfigProvider, theme, Spin, message } from 'ant-design-vue';
 import MenuDialog from '../menu/MenuDialog.vue';
-import ModalDialog from '../modal/ModalDialog.vue';
+import ModalPage from '../modal/ModalPage.vue';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
+import { LoadingOutlined } from '@ant-design/icons-vue';
+import toolApi from '@/client/service/api/tool.api';
+import { ResultEnum } from '@/client/service/request/vaxios';
+import SseClient from '@/client/service/sse/sseClient.api';
+import 'virtual:uno.css'
+import DataForm from '@/client/service/api/modal/dataform';
 
 interface State {
+  connected: boolean;
   showToolbar: boolean;
+  inputContext: string;
+  waitAiResponse: boolean;
 }
 
 const state: State = reactive({
-  showToolbar: true
+  connected: false,
+  inputContext: '',
+  showToolbar: true,
+  waitAiResponse: false
 })
 
 const screenWidth = ref(document.body.clientWidth);
@@ -24,13 +36,68 @@ window.onresize = () => {
   })();
 };
 
+
+const modalDialog = ref();
+const sseClient = new SseClient();
+const aiCreateModalHandler = (event: any): void => {
+  if (event.data && modalDialog.value) {
+    modalDialog.value.openModalDialog(JSON.parse(event.data) as DataForm)
+  }
+}
+
+const aiTipHandler = (event: any) => {
+  if (event.data && modalDialog.value) {
+    state.inputContext = event.data;
+  }
+}
+
+const aiComplateHandler = () => {
+  onClickStopResponse();
+}
+const sseConnect = () => {
+  sseClient.connted().then((res) => {
+    if (res.state === 0) {
+      state.connected = true;
+      sseClient.registerHandler("createModal", aiCreateModalHandler);
+      sseClient.registerHandler("complate", aiComplateHandler);
+      sseClient.registerHandler("tip", aiTipHandler);
+    }
+  });
+}
+const getUrlQueryParam = (name: string) => {
+  let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+  let r = window.location.search.substr(1).match(reg); //获取url中"?"符后的字符串并正则匹配
+  let context = '';
+  if (r) context = r[2];
+  return context ? context : '';
+}
+
+const ddkjLogin = (useParam?: boolean) => {
+  const urlParam = getUrlQueryParam("ddkj");
+  let token = useParam ? urlParam : sessionStorage.getItem("ddkjDesignToken");
+  if (!token) {
+    token = urlParam;
+  }
+
+  toolApi.login(token).then(res => {
+    if (res.state === ResultEnum.SUCCESS && res.data) {
+      sessionStorage.setItem('ddkjDesignToken', res.data.token);
+      sseConnect();
+    } else {
+      sessionStorage.removeItem("ddkjDesignToken");
+      ddkjLogin(true);
+    }
+  })
+}
+
+ddkjLogin();
+
 const toolbar = ref();
 const toolbarWidth: Ref<number> = ref(12);
 useResizeObserver(toolbar, (entries: any) => {
   const entry = entries[0]
   const { width } = entry.contentRect
   toolbarWidth.value = width + 24;
-  console.log("useResizeObserver", toolbar);
 });
 
 const toolbarLeft = computed(() => {
@@ -38,11 +105,35 @@ const toolbarLeft = computed(() => {
   if (left < 0) {
     left = 0;
   }
-
-  console.log("left", screenWidth.value, toolbarWidth.value);
-
   return `${left}px`;
-})
+});
+
+const logoIcon = computed(() => {
+  if (state.connected) {
+    if (state.waitAiResponse) {
+      return "svg-spinners:pulse-multiple";
+
+    } else {
+      return "hugeicons:ai-chat-02";
+
+    }
+
+  } else {
+    return "line-md:uploading-loop";
+  }
+});
+
+const inputClass = computed(() => {
+  if (state.connected) {
+    if (state.waitAiResponse) {
+      return "input-aitip";
+    } else {
+      return "";
+    }
+  } else {
+    return "input-disable";
+  }
+});
 
 const menuDialog = ref();
 function openTreeDialog() {
@@ -51,7 +142,6 @@ function openTreeDialog() {
   }
 }
 
-const modalDialog = ref();
 function openModalDialog() {
   if (modalDialog.value) {
     modalDialog.value.openModalDialog();
@@ -61,6 +151,29 @@ function openModalDialog() {
 
 function onModalClose() {
   state.showToolbar = true;
+}
+
+function onInputPressEnter() {
+  if (!state.connected) {
+    message.error("还没有连接到服务器！")
+    return;
+  }
+
+  if (state.inputContext && state.inputContext.length > 0) {
+    state.waitAiResponse = true;
+    toolApi.say(state.inputContext).then(res => {
+      if (res.state !== ResultEnum.SUCCESS) {
+        message.error(res.msg);
+      }
+    });
+  }
+}
+
+function onClickStopResponse() {
+  if (state.waitAiResponse = true) {
+    state.inputContext = '';
+    state.waitAiResponse = false;
+  }
 }
 </script>
 
@@ -72,19 +185,24 @@ function onModalClose() {
     },
   }">
     <div>
-      <div ref="toolbar" class="flex flex-row justify-center items-center gap-2 toolbar">
-        <Icon icon="hugeicons:ai-chat-02" class="logo" />
-        <div class="flex flex-row items-center chat">
-          <Input class="flex-1 input" :bordered="false" placeholder="请输入指令" />
+      <div ref="toolbar" :class="['toolbar', state.waitAiResponse ? 'toolbar-aiing' : '']">
+        <div :class="['flex', 'flex-row', 'items-center', 'chat', state.waitAiResponse ? 'chat-ani':'']">
+          <Icon :icon="logoIcon" class="logo" />
 
-          <!-- <div class="flex flex-row justify-end items-center">
-          <span style="color: #666;padding-right: 6px;">常用</span>
-          <Tag class="cytag" color="#f50" @click="openModalDialog">新数据管理</Tag>
-        </div> -->
+          <Input v-model:value="state.inputContext" :class="['flex-1', 'input', inputClass]" :bordered="false"
+            :placeholder="state.connected ? '请输入指令' : '正在唤醒您的开发组...'" :disabled="!state.connected"
+            @pressEnter="onInputPressEnter" />
 
           <Divider type="vertical" />
 
-          <div class="flex flex-row justify-end items-center gap-2">
+          <Tooltip v-if="state.waitAiResponse">
+            <template #title>停止接收内容</template>
+            <div class="flex flex-row justify-end items-center stop-btn" @click="onClickStopResponse">
+              <Icon icon="mdi:stop-pause-outline" style="font-size: 22px;" />
+            </div>
+          </Tooltip>
+
+          <div v-else-if="state.connected" class="flex flex-row justify-end items-center gap-2">
             <Tooltip>
               <template #title>数据模型</template>
               <div class="flex flex-row justify-center items-center action zl" @click="openModalDialog">
@@ -110,12 +228,60 @@ function onModalClose() {
       </div>
 
       <MenuDialog ref="menuDialog" />
-      <ModalDialog ref="modalDialog" :screen-height="screenHeight" @close="onModalClose" />
+      <ModalPage ref="modalDialog" :screen-height="screenHeight" @close="onModalClose" />
     </div>
   </ConfigProvider>
 </template>
 
 <style lang="less" scoped>
+@keyframes ddkj-glow {
+  0% {
+    box-shadow: 0px 0px 10px #eacd7688;
+  }
+
+  25% {
+    box-shadow: 0px 0px 20px #eacd7688;
+  }
+
+  50% {
+    box-shadow: 0px 0px 30px #eacd7688;
+  }
+
+  75% {
+    box-shadow: 0px 0px 15px #eacd7688;
+  }
+
+  100% {
+    box-shadow: 0px 0px 0px #eacd7688;
+  }
+}
+
+@keyframes ddkj-chat-animation {
+  0% {
+    box-shadow: inset 0px 1px 6px #eacd7688;
+  }
+
+  25% {
+    box-shadow: inset -1px 0px 6px #eacd7688;
+  }
+
+  50% {
+    box-shadow: inset 0px -1px 6px #eacd7688;
+  }
+
+  75% {
+    box-shadow: inset 1px 0px 6px #eacd7688;
+  }
+
+  100% {
+    box-shadow: inset 0px 1px 6px #eacd7688;
+  }
+}
+
+.toolbar-aiing {
+  animation: ddkj-glow 3s ease-out infinite;
+}
+
 .toolbar {
   --toolbarLeft: v-bind(toolbarLeft);
   position: fixed;
@@ -123,26 +289,50 @@ function onModalClose() {
   bottom: 10px;
 
   background: @color-background;
-  border-radius: 6px;
-  box-shadow: 0px 0px 4px #666666;
-  padding: 6px;
+  border-radius: 3px;
+  box-shadow: 0px 0px 10px #eacd7688;
+  border: 1px solid #f2fdff88;
+  padding: 4px;
   z-index: 99999;
 
-  .logo {
-    font-size: 26px;
-    color: @color-primary;
+  .chat-ani {
+    animation: ddkj-chat-animation 3s ease-out infinite;
   }
 
   .chat {
-    height: 32px;
-    line-height: 32px;
+    width: 580px;
+    height: 30px;
+    line-height: 30px;
     padding: 0px 6px;
     background-color: #fff;
     border-radius: 4px;
     font-size: 13px;
 
+    .logo {
+      font-size: 28px;
+      color: @color-primary;
+    }
+
     .input {
-      width: 260px;
+      flex: 1;
+      color: black;
+    }
+
+    input::placeholder {
+      color: gray;
+    }
+
+    .input-disable::placeholder {
+      color: red;
+    }
+
+    .input-aitip {
+      color: @color-primary;
+    }
+
+    .stop-btn {
+      cursor: pointer;
+      color: @color-primary;
     }
 
     .cytag {

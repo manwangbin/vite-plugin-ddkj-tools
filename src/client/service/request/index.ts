@@ -8,9 +8,8 @@ import type { AxiosTransform, CreateAxiosOptions } from './axiosTransform';
 import { isString } from '@/client/utils/is';
 import { deepMerge } from '@/client/utils/object';
 import { Modal, message } from 'ant-design-vue';
-import { localStg } from '@/client/utils/storage';
 import { checkStatus } from './checkStatus';
-import { createParamSign, formatRequestDate } from './helper';
+import { formatRequestDate } from './helper';
 import qs from 'qs';
 
 const API_SALT = 'ddkj@tuweisoft.com';
@@ -23,7 +22,7 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
     /** @description: 处理响应数据。如果数据不是预期格式，可直接抛出错误 */
     transformResponseHook: (res: AxiosResponse<ResultData>, options: RequestOptions) => {
       if (res.headers.token) {
-        localStg.set('ddkjtoolsToken', res.headers.token)
+        sessionStorage.setItem('ddkjDesignToken', res.headers.token)
       }
 
       const { data } = res;
@@ -54,10 +53,9 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
       }
       const time = new Date().getTime();
       (config as Recordable).headers.time = time;
-      (config as Recordable).headers.sign = createParamSign(params, time, API_SALT);
 
       formatDate && data && !isString(data) && formatRequestDate(data);
-      const token = localStg.get('ddkjtoolsToken');
+      const token = sessionStorage.getItem('ddkjDesignToken');
       if (token) {
         (config as Recordable).headers.Authorization = `Bearer ${token}`;
       }
@@ -148,7 +146,7 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
           errMessage = '请求超时';
         }
         if (err?.includes('Network Error')) {
-          errMessage = '忘了错误';
+          errMessage = '网络连接错误';
         }
 
         if (errMessage) {

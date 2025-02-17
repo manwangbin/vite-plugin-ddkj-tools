@@ -4,7 +4,7 @@ import path from 'path';
 import dts from 'vite-plugin-dts';
 import Inspect from 'vite-plugin-inspect';
 import UnoCSS from 'unocss/vite'
-// import ddkjTools from 'vite-plugin-ddkj-tools';
+// import {ddkjDevTools} from 'vite-plugin-ddkj-tools';
 import ddkjDevTools from './src/ddkj';
 
 export default defineConfig((configEnv) => {
