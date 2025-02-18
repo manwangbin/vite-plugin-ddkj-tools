@@ -12,7 +12,7 @@ import { checkStatus } from './checkStatus';
 import { formatRequestDate } from './helper';
 import qs from 'qs';
 
-const API_SALT = 'ddkj@tuweisoft.com';
+// const API_SALT = 'ddkj@tuweisoft.com';
 const API_BASE_URl = 'http://127.0.0.1:8002/api/';
 
 /** @description: 数据处理，方便区分多种处理方式 */

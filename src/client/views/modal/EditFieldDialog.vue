@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import FormField from '@/client/service/api/modal/formfield';
+import ModalTreeNode from '@/client/service/api/modal/modal-tree-node';
 import BooleanType from '@/client/service/api/modal/type/boolean.type';
 import DateType from '@/client/service/api/modal/type/date.type';
 import NumberType from '@/client/service/api/modal/type/number.type';
 import StringType from '@/client/service/api/modal/type/string.type';
-import { Col, Form, FormInstance, FormItem, Input, InputNumber, Modal, Row, Select, SelectOption, Switch } from 'ant-design-vue';
+import StructType from '@/client/service/api/modal/type/struct.type';
+import { Col, Form, FormInstance, FormItem, Input, InputNumber, Modal, Row, Select, SelectOption, Switch, TreeSelect } from 'ant-design-vue';
 import { Rule } from 'ant-design-vue/es/form';
 import { reactive, Ref, ref } from 'vue';
 
@@ -13,6 +15,11 @@ interface DialogState {
     confirmLoading: boolean;
     edit: boolean;
 }
+
+interface Prop {
+    treeData: Array<ModalTreeNode>;
+}
+const props = defineProps<Prop>();
 const dialogState: DialogState = reactive({ open: false, confirmLoading: false, edit: false });
 
 interface FormState {
@@ -23,6 +30,7 @@ interface FormState {
     rich?: boolean;
     decimal?: number;
     format?: string;
+    fullName?: string;
     trueLabel?: string;
     falseLabel?: string;
     required: boolean;
@@ -65,6 +73,24 @@ const openDialog = (field: FormField) => {
 }
 
 const emit = defineEmits<{ ok: [value: FormField] }>();
+
+const copyNode = (item: ModalTreeNode) => {
+    if (item.children && item.children.length > 0) {
+        const copy = { key: item.key, title: item.title } as ModalTreeNode;
+        for (let i = 0; i < item.children.length; i++) {
+            const child = copyNode(item.children[i]);
+            if (child) {
+                if (!copy.children) {
+                    copy.children = [];
+                }
+
+                copy.children.push(child);
+            }
+        }
+        return copy;
+    }
+}
+
 const onOk = () => {
     dialogState.confirmLoading = true;
     if (inputForm.value) {
@@ -97,6 +123,10 @@ const onOk = () => {
                         type.falseLabel = inputData.falseLabel;
                         inputData.type = type;
 
+                    } else if (inputData.type === 'Struct') {
+                        const type = { name: inputData.type } as StructType;
+                        type.fullName = inputData.fullName;
+                        inputData.type = type;
                     }
                 }
                 emit('ok', inputData);
@@ -170,6 +200,16 @@ defineExpose({
                         <SelectOption value="yyyy-MM-dd">yyyy-MM-dd</SelectOption>
                         <SelectOption value="HH:mm:ss">HH:mm:ss</SelectOption>
                     </Select>
+                </FormItem>
+                </Col>
+
+                <Col :span="12" v-if="formState.type === 'Struct'">
+                <FormItem name="fullName" label="关联字段">
+                    <TreeSelect v-model:value="formState.fullName" show-search style="width: 100%"
+                        :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }" placeholder="清选择"
+                        allow-clear tree-default-expand-all :tree-data="props.treeData" tree-node-filter-prop="label"
+                        :replaceFields="{children:'children', label:'title', value: 'fullName'}">
+                    </TreeSelect>
                 </FormItem>
                 </Col>
 

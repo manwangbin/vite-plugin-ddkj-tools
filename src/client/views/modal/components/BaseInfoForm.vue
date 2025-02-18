@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import DataForm from '@/client/service/api/modal/dataform';
 import FormField from '@/client/service/api/modal/formfield';
-import ModalTreeNode from '@/client/service/api/modal/modal-tree-node';
 import { AutoComplete, Checkbox, Col, Form, FormItem, Input, Row, Select } from 'ant-design-vue';
 import { FormInstance, Rule } from 'ant-design-vue/es/form';
-import { computed, Ref, ref } from 'vue';
+import { computed, Ref, ref, watch } from 'vue';
 
 interface FormState {
+    searchText?: string;
     category?: string;
     code?: string;
     title?: string;
@@ -18,7 +18,7 @@ interface FormState {
 }
 
 const props = defineProps<{
-    categories: Array<ModalTreeNode>,
+    categories: Array<{ value: string }>,
     fields: Array<FormField>,
     form: DataForm,
 }>();
@@ -49,6 +49,19 @@ const formState: Ref<FormState> = ref({
     note: props.form.note
 });
 
+watch(() => props.form, () => {
+    formState.value = {
+        category: formateCategory(props.form.category),
+        code: props.form.code,
+        title: props.form.title,
+        titleField: props.form.titleField,
+        isTree: props.form.isTree,
+        persistence: props.form.persistence,
+        enabledCache: props.form.enabledCache,
+        note: props.form.note
+    };
+})
+
 const rules: Record<string, Rule[]> = {
     code: [
         { required: true, message: "编号", trigger: "change" },
@@ -61,37 +74,16 @@ const rules: Record<string, Rule[]> = {
 };
 
 const categoryOptions = computed(() => {
-    const options: Array<{ value: string }> = [];
-    if (props.categories) {
-        for (let i = 0; i < props.categories.length; i++) {
-            const itemPaths = formatNode(props.categories[i]);
-            if (itemPaths) {
-                options.push(...itemPaths);
-            }
-        }
+    const options = [];
+    if (formState.value.searchText && formState.value.searchText.length > 0) {
+        options.push({value: formState.value.searchText});
     }
 
+    options.push(...props.categories);
+    console.log("categoryOptions", options);
+    
     return options;
-});
-
-const formatNode = (node: ModalTreeNode, parent?: string) => {
-    if (node) {
-        const items: Array<{ value: string }> = [];
-        const nodePath = (parent ? (parent + '.') : '') + node.key;
-        items.push({ value: nodePath });
-
-        if (node.children) {
-            for (let i = 0; i < node.children.length; i++) {
-                const childPaths = formatNode(node.children[i], nodePath);
-                if (childPaths) {
-                    items.push(...childPaths);
-                }
-            }
-        }
-
-        return items;
-    }
-}
+})
 
 const parseCategory = (category: string) => {
     return category.split(".");
@@ -113,9 +105,16 @@ const getFormData = () => {
                 .catch((err: any) => {
                     reject(err);
                 })
+        } else {
+            reject({ error: 'fail' })
         }
     })
 }
+
+const onCategoriesSearch = (searchText: string) => {
+  formState.value.searchText = searchText;
+  console.log("on search ", searchText);
+};
 
 defineExpose({
     getFormData
@@ -128,7 +127,7 @@ defineExpose({
             <Col :span="8">
             <FormItem name="category" label="分组">
                 <AutoComplete v-model:value="formState.category" placeholder="填写分组，多级分组用点号('.')隔开"
-                    :options="categoryOptions" style="width: 100%;" />
+                    :options="categoryOptions" style="width: 100%;" @search="onCategoriesSearch"/>
             </FormItem>
             </Col>
             <Col :span="8">

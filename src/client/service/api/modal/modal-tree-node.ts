@@ -4,6 +4,8 @@ export default interface ModalTreeNode {
 
     key: string;
 
+    fullName: string;
+
     title: string;
 
     form?: DataForm;

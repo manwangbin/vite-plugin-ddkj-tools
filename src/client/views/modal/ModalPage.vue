@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import modalApi from '@/client/service/api/modal.api';
-import { ResultEnum } from '@/client/service/request/vaxios';
+import { ResultData, ResultEnum } from '@/client/service/request/vaxios';
 import { Card, Modal, Tooltip, Tree, Button } from 'ant-design-vue';
 import { computed, reactive, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import ModalTreeNode from '@/client/service/api/modal/modal-tree-node';
 import DataForm from '@/client/service/api/modal/dataform';
-import { Key } from 'ant-design-vue/es/_util/type';
 import EditFieldDialog from './EditFieldDialog.vue';
 import FormField from '@/client/service/api/modal/formfield';
 import SseClient from '@/client/service/sse/sseClient.api';
 import FieldTable from './components/FieldTable.vue';
 import BaseInfoForm from './components/BaseInfoForm.vue';
+import EditModalDialog from './EditModalDialog.vue';
 
 interface Prop {
     screenHeight: number;
@@ -34,19 +34,38 @@ const modalState: ModalDialogState = reactive({
 const props = defineProps<Prop>();
 const emit = defineEmits(['close']);
 
-const categoryTree = computed(() => {
-    const categryArray = [];
+const categoryOptions = computed(() => {
+    const options: Array<{ value: string }> = [];
     if (modalState.treeData) {
         for (let i = 0; i < modalState.treeData.length; i++) {
-            const item = copyNode(modalState.treeData[i]);
-            if (item) {
-                categryArray.push(item);
+            const itemPaths = formatNode(modalState.treeData[i]);
+            if (itemPaths) {
+                options.push(...itemPaths);
             }
         }
     }
 
-    return categryArray;
+    return options;
 });
+
+const formatNode = (node: ModalTreeNode, parent?: string) => {
+    if (node && (node.form === undefined || node.form === null)) {
+        const items: Array<{ value: string }> = [];
+        const nodePath = (parent ? (parent + '.') : '') + node.key;
+        items.push({ value: node.fullName });
+
+        if (node.children) {
+            for (let i = 0; i < node.children.length; i++) {
+                const childPaths = formatNode(node.children[i], nodePath);
+                if (childPaths) {
+                    items.push(...childPaths);
+                }
+            }
+        }
+
+        return items;
+    }
+}
 
 const modalFieldValues = computed(() => {
     if (modalState.dataForm) {
@@ -56,22 +75,7 @@ const modalFieldValues = computed(() => {
     return [];
 });
 
-const copyNode = (item: ModalTreeNode) => {
-    if (item.children && item.children.length > 0) {
-        const copy = { key: item.key, title: item.title } as ModalTreeNode;
-        for (let i = 0; i < item.children.length; i++) {
-            const child = copyNode(item.children[i]);
-            if (child) {
-                if (!copy.children) {
-                    copy.children = [];
-                }
 
-                copy.children.push(child);
-            }
-        }
-        return copy;
-    }
-}
 
 const aiUpdateModal = (event: any) => {
     if (event.data) {
@@ -106,6 +110,38 @@ const onClose = () => {
     emit('close');
 }
 
+const onRefreshTree = () => {
+    modalState.treeData = [];
+    modalApi.getModalTrees().then(res => {
+        if (res.state === ResultEnum.SUCCESS && res.data) {
+            modalState.treeData = res.data;
+        }
+    });
+}
+
+const editModalDialog = ref();
+const onNewModal = () => {
+    if (editModalDialog.value) {
+        editModalDialog.value.openNewDialog();
+    }
+}
+
+const onModalInfoDialogOk = (data: DataForm) => {
+    const key = `form-${data.code}`;
+    const categoryNode = findNode(data.category, modalState.treeData);
+    if (categoryNode) {
+        if (!categoryNode.children) {
+            categoryNode.children = [];
+        }
+        categoryNode.children.push({ key, fullName: '', title: data.title, form: data });
+
+    } else {
+        modalState.treeData.push({ key, fullName: '', title: data.title, form: data });
+
+    }
+    modalState.dataForm = data;
+}
+
 const findNode = (categories: Array<string>, nodes: Array<ModalTreeNode>) => {
     if (categories && categories.length > 0 && nodes && nodes.length > 0) {
         let currentNode = undefined;
@@ -125,23 +161,7 @@ const findNode = (categories: Array<string>, nodes: Array<ModalTreeNode>) => {
     }
 }
 
-const onRefreshTree = () => {
-    modalState.treeData = [];
-    modalApi.getModalTrees().then(res => {
-        if (res.state === ResultEnum.SUCCESS && res.data) {
-            modalState.treeData = res.data;
-        }
-    });
-}
-
-const editModalDialog = ref();
-const onNewModal = () => {
-    if (editModalDialog.value) {
-        editModalDialog.value.openNewDialog();
-    }
-}
-
-const onTreeSelected = (keys: Key[], e: any) => {
+const onTreeSelected = (e: any) => {
     if (e) {
         const dataForm = e.node.dataRef.form as DataForm;
         if (dataForm) {
@@ -161,23 +181,20 @@ const onTreeSelected = (keys: Key[], e: any) => {
 const basicForm = ref();
 const onClickSave = () => {
     if (basicForm.value) {
-        basicForm.value.getFormData((data: DataForm) => {
-            const key = `form-${data.code}`;
+        basicForm.value.getFormData().then((data: DataForm) => {
             data.fields = modalFieldValues.value;
-            
-            const categoryNode = findNode(data.category, modalState.treeData);
-            if (categoryNode) {
-                if (!categoryNode.children) {
-                    categoryNode.children = [];
-                }
-                categoryNode.children.push({ key, title: data.title, form: data });
 
-            } else {
-                modalState.treeData.push({ key, title: data.title, form: data });
-
-            }
-            modalState.dataForm = data;
+            modalApi.create(data).then(res => {
+                savedFormDataHandler(res);
+            })
         });
+    }
+}
+
+const savedFormDataHandler = (res: ResultData<DataForm>) => {
+    if (res.state === ResultEnum.SUCCESS && res.data) {
+        onRefreshTree();
+        modalState.dataForm = res.data;
     }
 }
 
@@ -259,7 +276,8 @@ defineExpose({
                 </div>
                 <Tree size="small" v-if="modalState.treeData?.length > 0" class="flex-1 tree"
                     :tree-data="modalState.treeData" :show-line="true" :show-icon="true" :default-expand-all="true"
-                    :auto-expand-parent="true" :block-node="true" :draggable="true" @select="onTreeSelected" />
+                    :auto-expand-parent="true" :block-node="true" :draggable="true"
+                    @select="(_, event) => onTreeSelected(event)" />
             </div>
 
             <Card size="small" class="right" v-if="modalState.dataForm"
@@ -270,7 +288,7 @@ defineExpose({
                     </div>
                 </template>
                 <div>
-                    <BaseInfoForm ref="basicForm" :categories="categoryTree" :fields="modalFieldValues"
+                    <BaseInfoForm ref="basicForm" :categories="categoryOptions" :fields="modalFieldValues"
                         :form="modalState.dataForm" />
 
                     <div class="flex flex-row justify-between sub-title-bar">
@@ -287,7 +305,8 @@ defineExpose({
             </Card>
         </div>
 
-        <EditFieldDialog ref="editFieldDialog" @ok="onEditFieldOk" />
+        <EditModalDialog ref="editModalDialog" :categories="categoryOptions" @ok="onModalInfoDialogOk" />
+        <EditFieldDialog ref="editFieldDialog" :tree-data="modalState.treeData" @ok="onEditFieldOk" />
     </Modal>
 </template>
 
@@ -300,6 +319,10 @@ defineExpose({
         padding-bottom: 0;
         top: 0;
         margin: 0;
+
+        .ant-modal-close {
+            top: 12px !important;
+        }
 
         .ant-modal-content {
             overflow: hidden;
@@ -361,6 +384,7 @@ defineExpose({
             width: 100%;
 
             .save-btn {
+                cursor: pointer;
                 font-size: 20px;
                 color: @color-primary;
             }

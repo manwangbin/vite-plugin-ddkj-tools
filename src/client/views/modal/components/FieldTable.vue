@@ -43,15 +43,15 @@ const fieldColumns = [
     {
         dataIndex: 'required',
         key: 'required',
-        align: 'center',
         title: '必填',
+        algin: 'center',
         width: 100
     },
     {
         dataIndex: 'unique',
         key: 'unique',
         title: '唯一',
-        align: 'center',
+        algin: 'center',
         width: 100
     },
     {
@@ -154,7 +154,7 @@ const customRow = (record: any) => {
 </script>
 
 <template>
-    <Table size="small" bordered :columns="fieldColumns" :pagination="false" :custom-row="customRow"
+    <Table size="small" bordered :columns="fieldColumns as any" :pagination="false" :custom-row="customRow"
         :scroll="{ y: props.tableBodyHeight }" :data-source="props.fields">
         <template #bodyCell="{ column, text, record }">
             <template v-if="column.key === 'type'">
