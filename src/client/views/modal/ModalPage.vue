@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import modalApi from '@/client/service/api/modal.api';
-import { ResultData, ResultEnum } from '@/client/service/request/vaxios';
 import { Card, Modal, Tooltip, Tree, Button } from 'ant-design-vue';
 import { computed, reactive, ref } from 'vue';
 import { Icon } from '@iconify/vue';
@@ -12,8 +10,12 @@ import SseClient from '@/client/service/sse/sseClient.api';
 import FieldTable from './components/FieldTable.vue';
 import BaseInfoForm from './components/BaseInfoForm.vue';
 import EditModalDialog from './EditModalDialog.vue';
+import DdkjService from '../dev-tools/ddkj.service';
+import modalApi from '@/client/api/modal.api';
+import { ResultData, ResultEnum } from '@/client/api/modal/request';
 
 interface Prop {
+    aiEdit: boolean;
     screenHeight: number;
 }
 
@@ -21,18 +23,19 @@ interface ModalDialogState {
     open: boolean;
     loading: boolean;
     treeData: Array<ModalTreeNode>;
-    aiEdit: boolean;
     dataForm?: DataForm;
 }
 
 const modalState: ModalDialogState = reactive({
     open: false,
     loading: false,
-    aiEdit: false
 } as ModalDialogState);
 
 const props = defineProps<Prop>();
 const emit = defineEmits(['close']);
+
+const sseClient = SseClient.inject();
+const ddkjService = DdkjService.inject();
 
 const categoryOptions = computed(() => {
     const options: Array<{ value: string }> = [];
@@ -75,38 +78,29 @@ const modalFieldValues = computed(() => {
     return [];
 });
 
-
-
 const aiUpdateModal = (event: any) => {
+    console.log("ai udpate modal", event);
+
     if (event.data) {
         modalState.dataForm = JSON.parse(event.data) as DataForm;
     }
 }
 
-const aiComplateHandler = () => {
-    modalState.aiEdit = false;
-}
+const openModalDialog = () => {
+    if (!modalState.open) {
+        sseClient.registerHandler("Modal", aiUpdateModal);
+    }
 
-const sseClient = SseClient.inject();
-const openModalDialog = (newModal?: DataForm) => {
     modalState.open = true;
     modalApi.getModalTrees().then(res => {
         if (res.state === ResultEnum.SUCCESS && res.data) {
             modalState.treeData = res.data;
         }
     });
-
-    if (newModal) {
-        modalState.aiEdit = true;
-        modalState.dataForm = newModal;
-        sseClient.registerHandler("modalUpdate", aiUpdateModal);
-        sseClient.registerHandler("complate", aiComplateHandler);
-    }
 }
 
 const onClose = () => {
-    sseClient.removeHandler("modalUpdate", aiUpdateModal);
-    sseClient.removeHandler("complate", aiComplateHandler);
+    sseClient.removeHandler("Modal", aiUpdateModal);
     emit('close');
 }
 
@@ -225,7 +219,7 @@ const onFieldDataSort = (event: { source: number, to: number }) => {
         const fields = [...modalState.dataForm.fields];
         const deleted = fields.splice(event.source, 1);
         if (event.to > event.source) {
-            fields.splice((event.to - 1), 0, ...deleted);
+            fields.splice(event.to, 0, ...deleted);
         } else {
             fields.splice(event.to, 0, ...deleted);
         }
@@ -293,14 +287,14 @@ defineExpose({
 
                     <div class="flex flex-row justify-between sub-title-bar">
                         <div class="title">属性列表</div>
-                        <div><Button v-show="!modalState.aiEdit" size="small" type="primary"
+                        <div><Button v-show="!aiEdit" size="small" type="primary"
                                 @click="onClickNewField">创建新属性</Button>
                         </div>
                     </div>
 
                     <FieldTable class="table" :tree-data="modalState.treeData" :table-body-height="tableBodyHeight"
-                        :fields="modalFieldValues" :ai-edit="modalState.aiEdit" @edit="onClickEditField"
-                        @delete="onClickDelField" @sort="onFieldDataSort" />
+                        :fields="modalFieldValues" :ai-edit="aiEdit" @edit="onClickEditField" @delete="onClickDelField"
+                        @sort="onFieldDataSort" />
                 </div>
             </Card>
         </div>

@@ -1,30 +1,18 @@
 <script setup lang="ts">
-import { computed, reactive, Ref, ref } from 'vue';
+import { computed, Ref, ref } from 'vue';
 import { useResizeObserver } from "@vueuse/core";
 import { Icon } from '@iconify/vue';
 import { Tooltip, Input, Divider, ConfigProvider, theme, message } from 'ant-design-vue';
 import MenuDialog from '../menu/MenuDialog.vue';
 import ModalPage from '../modal/ModalPage.vue';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
-import toolApi from '@/client/service/api/tool.api';
-import { ResultEnum } from '@/client/service/request/vaxios';
 import SseClient from '@/client/service/sse/sseClient.api';
+import TaskCreate from '@/client/service/sse/modal/taskCreateResult';
+import DdkjService, { STATUS } from './ddkj.service';
+import Chatbox from '@/client/components/chatbox.vue';
+import AiMessage from '@/client/service/sse/modal/aimessage';
 import 'virtual:uno.css'
-import DataForm from '@/client/service/api/modal/dataform';
-
-interface State {
-  connected: boolean;
-  showToolbar: boolean;
-  inputContext: string;
-  waitAiResponse: boolean;
-}
-
-const state: State = reactive({
-  connected: false,
-  inputContext: '',
-  showToolbar: true,
-  waitAiResponse: false
-})
+import { error } from 'console';
 
 const screenWidth = ref(document.body.clientWidth);
 const screenHeight = ref(document.body.clientHeight);
@@ -35,61 +23,65 @@ window.onresize = () => {
   })();
 };
 
-
-const modalDialog = ref();
 const sseClient = new SseClient();
-const aiCreateModalHandler = (event: any): void => {
-  if (event.data && modalDialog.value) {
-    modalDialog.value.openModalDialog(JSON.parse(event.data) as DataForm)
-  }
-}
+const service = new DdkjService();
 
+const connted = computed(() => service.state.status === STATUS.CONNECTED || service.state.status === STATUS.REQUESETNEWTASK);
+const modalDialog = ref();
 const aiTipHandler = (event: any) => {
   if (event.data && modalDialog.value) {
-    state.inputContext = event.data;
+    message.info(event.data);
   }
 }
 
-const aiComplateHandler = () => {
-  onClickStopResponse();
+const taskCreateHandler = (event: any) => {
+  if (!event.data) {
+    return;
+  }
+
+  const taskCreate = JSON.parse(event.data) as TaskCreate;
+  if (taskCreate.type === "Modal" && modalDialog.value) {
+    service.startSession(taskCreate.sessionId!);
+    modalDialog.value.openModalDialog();
+  }
 }
+
 const sseConnect = () => {
-  sseClient.connted().then((res) => {
-    if (res.state === 0) {
-      state.connected = true;
-      sseClient.registerHandler("createModal", aiCreateModalHandler);
-      sseClient.registerHandler("complate", aiComplateHandler);
-      sseClient.registerHandler("tip", aiTipHandler);
+  sseClient.connted(() => {
+    if (service && service.state) {
+      // service.state.status = STATUS.LOST;
     }
+  }).then(() => {
+    sseClient.registerHandler("sse", (event) => service.sseHandler(event));
+    sseClient.registerHandler("TaskCreate", taskCreateHandler);
+    sseClient.registerHandler("TaskComplate", () => service.complateTask());
+    sseClient.registerHandler("reason", (event) => service.sseReasonHandler(event));
+    sseClient.registerHandler("tip", aiTipHandler);
+
   });
 }
-const getUrlQueryParam = (name: string) => {
-  let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
-  let r = window.location.search.substr(1).match(reg); //获取url中"?"符后的字符串并正则匹配
-  let context = '';
-  if (r) context = r[2];
-  return context ? context : '';
-}
 
-const ddkjLogin = (useParam?: boolean) => {
-  const urlParam = getUrlQueryParam("ddkj");
-  let token = useParam ? urlParam : sessionStorage.getItem("ddkjDesignToken");
-  if (!token) {
-    token = urlParam;
+service.ddkjLogin()
+.then(() => console.log("login success"))
+.catch(error => console.error(error));
+
+const msgs = computed(() => {
+  const datas: Array<AiMessage> = [];
+  if (!service || !service.state) {
+    return datas;
   }
 
-  toolApi.login(token).then(res => {
-    if (res.state === ResultEnum.SUCCESS && res.data) {
-      sessionStorage.setItem('ddkjDesignToken', res.data.token);
-      sseConnect();
-    } else {
-      sessionStorage.removeItem("ddkjDesignToken");
-      ddkjLogin(true);
-    }
-  })
-}
+  if (service.state.session && service.state.session.msg) {
+    datas.push(...service.state.session.msg);
+  }
 
-ddkjLogin();
+  if (service.state.responseReason) {
+    datas.push(service.state.responseReason);
+  }
+
+  console.log("msg ", datas);
+  return datas;
+})
 
 const toolbar = ref();
 const toolbarWidth: Ref<number> = ref(12);
@@ -107,32 +99,17 @@ const toolbarLeft = computed(() => {
   return `${left}px`;
 });
 
-const logoIcon = computed(() => {
-  if (state.connected) {
-    if (state.waitAiResponse) {
-      return "svg-spinners:pulse-multiple";
+const toolbarAnimationClass = computed(() => {
+  if (service.state.status === STATUS.CONNECTIING) {
+    return 'tool-connecting';
 
-    } else {
-      return "hugeicons:ai-chat-02";
+  } else if (service.state.status === STATUS.RESPONSEING) {
+    return 'toolbar-aiing';
 
-    }
-
-  } else {
-    return "line-md:uploading-loop";
   }
-});
 
-const inputClass = computed(() => {
-  if (state.connected) {
-    if (state.waitAiResponse) {
-      return "input-aitip";
-    } else {
-      return "";
-    }
-  } else {
-    return "input-disable";
-  }
-});
+  return '';
+})
 
 const menuDialog = ref();
 function openTreeDialog() {
@@ -144,36 +121,12 @@ function openTreeDialog() {
 function openModalDialog() {
   if (modalDialog.value) {
     modalDialog.value.openModalDialog();
-    state.showToolbar = false;
   }
 }
 
 function onModalClose() {
-  state.showToolbar = true;
 }
 
-function onInputPressEnter() {
-  if (!state.connected) {
-    message.error("还没有连接到服务器！")
-    return;
-  }
-
-  if (state.inputContext && state.inputContext.length > 0) {
-    state.waitAiResponse = true;
-    toolApi.say(state.inputContext).then(res => {
-      if (res.state !== ResultEnum.SUCCESS) {
-        message.error(res.msg);
-      }
-    });
-  }
-}
-
-function onClickStopResponse() {
-  if (state.waitAiResponse = true) {
-    state.inputContext = '';
-    state.waitAiResponse = false;
-  }
-}
 </script>
 
 <template>
@@ -183,51 +136,55 @@ function onClickStopResponse() {
       colorPrimary: '#177cb0',
     },
   }">
-    <div>
-      <div ref="toolbar" :class="['toolbar', state.waitAiResponse ? 'toolbar-aiing' : '']">
-        <div :class="['flex', 'flex-row', 'items-center', 'chat', state.waitAiResponse ? 'chat-ani':'']">
-          <Icon :icon="logoIcon" class="logo" />
+    <div ref="toolbar" :class="['toolbar', toolbarAnimationClass]">
+      <Chatbox v-show="service.state.status === STATUS.RESPONSEING" :title="service.state.session?.title" :msgs="msgs"
+        class="chat-box" />
 
-          <Input v-model:value="state.inputContext" :class="['flex-1', 'input', inputClass]" :bordered="false"
-            :placeholder="state.connected ? '请输入指令' : '正在唤醒您的开发组...'" :disabled="!state.connected"
-            @pressEnter="onInputPressEnter" />
+      <div class="flex flex-row justify-start items-center gap-2 ddkj-loading"
+        v-if="service.state.status === STATUS.CONNECTIING">
+        <div class="wake"></div>
+        <span>唤醒开发组...</span>
+      </div>
 
-          <Divider type="vertical" />
+      <div v-else-if="connted" class="flex flex-row items-center chat">
+        <Icon icon="hugeicons:ai-chat-02" class="logo" />
 
-          <Tooltip v-if="state.waitAiResponse">
-            <template #title>停止接收内容</template>
-            <div class="flex flex-row justify-end items-center stop-btn" @click="onClickStopResponse">
-              <Icon icon="mdi:stop-pause-outline" style="font-size: 22px;" />
+        <Input v-model:value="service.state.inputContext" class="flex-1 input" :bordered="false" placeholder="请输入指令"
+          :disabled="service.state.status !== STATUS.CONNECTED" @pressEnter="service.onInputPressEnter()" />
+
+        <Divider type="vertical" />
+
+        <div v-if="service.state.status === STATUS.REQUESETNEWTASK">
+          <Icon icon="svg-spinners:90-ring-with-bg" />
+        </div>
+
+        <div v-else class="flex flex-row justify-end items-center gap-2">
+          <Tooltip>
+            <template #title>数据模型</template>
+            <div class="flex flex-row justify-center items-center action zl" @click="openModalDialog">
+              <Icon icon="fluent:form-24-regular" />
             </div>
           </Tooltip>
 
-          <div v-else-if="state.connected" class="flex flex-row justify-end items-center gap-2">
-            <Tooltip>
-              <template #title>数据模型</template>
-              <div class="flex flex-row justify-center items-center action zl" @click="openModalDialog">
-                <Icon icon="fluent:form-24-regular" />
-              </div>
-            </Tooltip>
+          <Tooltip>
+            <template #title>配置菜单</template>
+            <div class="flex flex-row justify-center items-center action dz" @click="openTreeDialog">
+              <Icon icon="icon-park-outline:tree-list" />
+            </div>
+          </Tooltip>
 
-            <Tooltip>
-              <template #title>配置菜单</template>
-              <div class="flex flex-row justify-center items-center action dz" @click="openTreeDialog">
-                <Icon icon="icon-park-outline:tree-list" />
-              </div>
-            </Tooltip>
-
-            <Tooltip>
-              <template #title>页面设计</template>
-              <div class="flex flex-row justify-center items-center action wj" @click="openTreeDialog">
-                <Icon icon="qlementine-icons:page-setup-16" />
-              </div>
-            </Tooltip>
-          </div>
+          <Tooltip>
+            <template #title>页面设计</template>
+            <div class="flex flex-row justify-center items-center action wj" @click="openTreeDialog">
+              <Icon icon="qlementine-icons:page-setup-16" />
+            </div>
+          </Tooltip>
         </div>
       </div>
 
       <MenuDialog ref="menuDialog" />
-      <ModalPage ref="modalDialog" :screen-height="screenHeight" @close="onModalClose" />
+      <ModalPage ref="modalDialog" :screen-height="screenHeight" :ai-edit="service.state.status === STATUS.RESPONSEING"
+        @close="onModalClose" />
     </div>
   </ConfigProvider>
 </template>
@@ -278,7 +235,16 @@ function onClickStopResponse() {
 }
 
 .toolbar-aiing {
+  bottom: 0px !important;
   animation: ddkj-glow 3s ease-out infinite;
+}
+
+.tool-connecting {
+  padding: 6px 10px !important;
+  border-radius: 10px 10px 0px 0px !important;
+  font-size: 13px;
+  color: red;
+  bottom: 0px !important;
 }
 
 .toolbar {
@@ -286,6 +252,8 @@ function onClickStopResponse() {
   position: fixed;
   left: var(--toolbarLeft);
   bottom: 10px;
+  width: fit-content;
+  height: fit-content;
 
   background: @color-background;
   border-radius: 3px;
@@ -293,6 +261,69 @@ function onClickStopResponse() {
   border: 1px solid #f2fdff88;
   padding: 4px;
   z-index: 99999;
+  transition: all 0.5s;
+
+  .chat-box {
+    width: 90vw;
+  }
+
+  .ddkj-loading {
+    width: fit-content;
+
+    .wake {
+      width: 20px;
+      aspect-ratio: 1;
+      color: #ce0800;
+      border: 2px solid;
+      box-sizing: border-box;
+      border-radius: 50%;
+      background-color: #f0f0f0 !important;
+      background:
+        radial-gradient(circle 2px, #000 95%, #0000),
+        linear-gradient(180deg, #000 50%, #0000 0) center/1px 70%,
+        linear-gradient(90deg, #000 50%, #0000 0) center/50% 2px;
+      background-repeat: no-repeat;
+      position: relative;
+      animation: l9 1s infinite;
+    }
+
+    .wake:before,
+    .wake:after {
+      content: "";
+      position: absolute;
+      border-radius: 8px 8px 0 0;
+      inset: -7px calc(50% - 4px);
+      transform: rotate(40deg);
+      background:
+        linear-gradient(currentColor 0 0) top /100% 4px,
+        linear-gradient(currentColor 0 0) bottom/2px 4px;
+      background-repeat: no-repeat;
+    }
+
+    .wake:after {
+      transform: rotate(-40deg);
+    }
+
+    @keyframes l9 {
+
+      0%,
+      70%,
+      100% {
+        transform: translateY(0) rotate(0)
+      }
+
+      75%,
+      85%,
+      95% {
+        transform: translateY(-3px) rotate(10deg)
+      }
+
+      80%,
+      90% {
+        transform: translateY(-3px) rotate(-10deg)
+      }
+    }
+  }
 
   .chat-ani {
     animation: ddkj-chat-animation 3s ease-out infinite;

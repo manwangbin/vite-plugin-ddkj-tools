@@ -42,13 +42,16 @@
     "ant-design-vue": "4.x",
     "axios": "^1.7.9",
     "axios-retry": "^4.5.0",
+    "dayjs": "^1.11.13",
     "es-module-lexer": "^1.5.4",
     "js-md5": "^0.8.3",
     "localforage": "^1.10.0",
+    "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
     "postcss-import": "^14.1.0",
     "qs": "^6.14.0",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "vue-echarts": "^7.0.3"
   },
   "devDependencies": {
     "@iconify/json": "^2.2.278",

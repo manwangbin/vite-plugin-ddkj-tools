@@ -1,5 +1,6 @@
 import { Plugin } from "vite";
 import { parse } from "@vue/compiler-sfc";
+import startServer from "./server/server";
 
 function loadAppFile(code: string, id: string) {
     const res = parse(code, { sourceMap: false, filename: id, templateParseOptions: { parseMode: 'sfc' } });
@@ -59,13 +60,14 @@ export default function ddkjDevTools(): Plugin {
         },
 
         configureServer(server) {
-            server.ws.on('connection', (client) => {
-             
-            });
+            startServer(server);
+            // server.ws.on('connection', (client) => {
+            //  client.send({"test": "ok"})
+            // });
 
-            server.ws.on('my:from-client', (data, client) => {
-                console.log("recive", data);
-            })
+            // server.ws.on('my:from-client', (data, client) => {
+            //     console.log("recive", data);
+            // })
         },
         sharedDuringBuild: true,
     }
