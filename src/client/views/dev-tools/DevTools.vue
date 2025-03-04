@@ -11,8 +11,7 @@ import TaskCreate from '@/client/service/sse/modal/taskCreateResult';
 import DdkjService, { STATUS } from './ddkj.service';
 import Chatbox from '@/client/components/chatbox.vue';
 import AiMessage from '@/client/service/sse/modal/aimessage';
-import 'virtual:uno.css'
-import { error } from 'console';
+import 'virtual:uno.css';
 
 const screenWidth = ref(document.body.clientWidth);
 const screenHeight = ref(document.body.clientHeight);

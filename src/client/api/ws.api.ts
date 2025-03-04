@@ -1,5 +1,3 @@
-import { connect } from "http2";
-import { setTimeout } from "timers";
 import { ViteHotContext } from "vite/types/hot.js";
 
 export class ViteClient {
@@ -14,6 +12,8 @@ export class ViteClient {
             const requestId = response.id;
             const requestCallback = this.requestQueue.get(requestId);
             if (requestCallback) {
+                this.requestQueue.delete(requestId);
+
                 if (requestCallback.connTimer) {
                     clearTimeout(requestCallback.connTimer);
                 }
