@@ -1,12 +1,12 @@
 export default interface AiMessage {
 
-    sessionId?: string;
+    taskId?: string;
 
-    taskId: string;
+    reason?: string;
 
-    msg: string;
+    content: string;
 
-    type: "reason" | "content";
+    role: "user" | "assistant" | "system";
 
     finished: boolean;
 }

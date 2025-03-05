@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import Bubble from './bubble.vue';
-import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 import AiMessage from '../service/sse/modal/aimessage';
 import { Icon } from '@iconify/vue';
 import { watch, ref } from 'vue';
 
 const props = defineProps<{ title?: string, msgs: Array<AiMessage> }>();
 
-watch(props.msgs, () => scrollToBottom())
+watch(()=>props.msgs, () => scrollToBottom())
 
 const chatbox = ref();
 function scrollToBottom() {
@@ -18,7 +17,7 @@ function scrollToBottom() {
 </script>
 
 <template>
-  <div class="chat-container">
+  <div class="flex flex-col justify-start items-start gap-10px chat-container">
     <div class="flex flex-row justify-between items-center title-bar">
       <div class="title">{{ props.title }}</div>
       <div>
@@ -26,15 +25,17 @@ function scrollToBottom() {
       </div>
     </div>
     <div ref="chatbox" class="chatbox">
-      <Bubble :msg="item.msg" v-for="(item, index) in props.msgs" :key="index" />
+      <Bubble :role="item.role" :msg="item.content" v-for="(item, index) in props.msgs"  :key="index" />
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
 .chat-container {
+  
 
   .title-bar {
+    width: 100%;
     color: #fffffff0;
     font-size: 20px;
     line-height: 30px;

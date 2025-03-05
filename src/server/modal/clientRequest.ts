@@ -1,3 +1,5 @@
+import { ResponseType } from "axios";
+
 export default interface ClientRequest {
 
     id: string;
@@ -11,4 +13,6 @@ export default interface ClientRequest {
     data: any;
     
     headers: any;
+
+    responseType: ResponseType;
 }

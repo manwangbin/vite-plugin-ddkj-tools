@@ -6,13 +6,12 @@ import ModalTreeNode from '@/client/service/api/modal/modal-tree-node';
 import DataForm from '@/client/service/api/modal/dataform';
 import EditFieldDialog from './EditFieldDialog.vue';
 import FormField from '@/client/service/api/modal/formfield';
-import SseClient from '@/client/service/sse/sseClient.api';
 import FieldTable from './components/FieldTable.vue';
 import BaseInfoForm from './components/BaseInfoForm.vue';
 import EditModalDialog from './EditModalDialog.vue';
-import DdkjService from '../dev-tools/ddkj.service';
 import modalApi from '@/client/api/modal.api';
 import { ResultData, ResultEnum } from '@/client/api/modal/request';
+import { registSseHandler, removeRegistHandler } from '@/client/api/ws.api';
 
 interface Prop {
     aiEdit: boolean;
@@ -34,8 +33,8 @@ const modalState: ModalDialogState = reactive({
 const props = defineProps<Prop>();
 const emit = defineEmits(['close']);
 
-const sseClient = SseClient.inject();
-const ddkjService = DdkjService.inject();
+// const sseClient = SseClient.inject();
+// const ddkjService = DdkjService.inject();
 
 const categoryOptions = computed(() => {
     const options: Array<{ value: string }> = [];
@@ -79,16 +78,14 @@ const modalFieldValues = computed(() => {
 });
 
 const aiUpdateModal = (event: any) => {
-    console.log("ai udpate modal", event);
-
     if (event.data) {
-        modalState.dataForm = JSON.parse(event.data) as DataForm;
+        modalState.dataForm = event.data as DataForm;
     }
 }
 
 const openModalDialog = () => {
     if (!modalState.open) {
-        sseClient.registerHandler("Modal", aiUpdateModal);
+        registSseHandler("Modal", aiUpdateModal);
     }
 
     modalState.open = true;
@@ -100,7 +97,7 @@ const openModalDialog = () => {
 }
 
 const onClose = () => {
-    sseClient.removeHandler("Modal", aiUpdateModal);
+    removeRegistHandler("Modal", aiUpdateModal);
     emit('close');
 }
 

@@ -6,12 +6,11 @@ import { Tooltip, Input, Divider, ConfigProvider, theme, message } from 'ant-des
 import MenuDialog from '../menu/MenuDialog.vue';
 import ModalPage from '../modal/ModalPage.vue';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
-import SseClient from '@/client/service/sse/sseClient.api';
-import TaskCreate from '@/client/service/sse/modal/taskCreateResult';
 import DdkjService, { STATUS } from './ddkj.service';
 import Chatbox from '@/client/components/chatbox.vue';
-import AiMessage from '@/client/service/sse/modal/aimessage';
 import 'virtual:uno.css';
+import TaskCreate from '@/client/service/sse/modal/taskCreateResult';
+import { registSseHandler } from '@/client/api/ws.api';
 
 const screenWidth = ref(document.body.clientWidth);
 const screenHeight = ref(document.body.clientHeight);
@@ -22,65 +21,28 @@ window.onresize = () => {
   })();
 };
 
-const sseClient = new SseClient();
 const service = new DdkjService();
 
 const connted = computed(() => service.state.status === STATUS.CONNECTED || service.state.status === STATUS.REQUESETNEWTASK);
 const modalDialog = ref();
-const aiTipHandler = (event: any) => {
-  if (event.data && modalDialog.value) {
-    message.info(event.data);
-  }
-}
+
 
 const taskCreateHandler = (event: any) => {
   if (!event.data) {
     return;
   }
 
-  const taskCreate = JSON.parse(event.data) as TaskCreate;
+  const taskCreate = event.data as TaskCreate;
   if (taskCreate.type === "Modal" && modalDialog.value) {
-    service.startSession(taskCreate.sessionId!);
     modalDialog.value.openModalDialog();
   }
 }
 
-const sseConnect = () => {
-  sseClient.connted(() => {
-    if (service && service.state) {
-      // service.state.status = STATUS.LOST;
-    }
-  }).then(() => {
-    sseClient.registerHandler("sse", (event) => service.sseHandler(event));
-    sseClient.registerHandler("TaskCreate", taskCreateHandler);
-    sseClient.registerHandler("TaskComplate", () => service.complateTask());
-    sseClient.registerHandler("reason", (event) => service.sseReasonHandler(event));
-    sseClient.registerHandler("tip", aiTipHandler);
-
-  });
-}
+registSseHandler("TaskCreate", taskCreateHandler);
 
 service.ddkjLogin()
-.then(() => console.log("login success"))
-.catch(error => console.error(error));
-
-const msgs = computed(() => {
-  const datas: Array<AiMessage> = [];
-  if (!service || !service.state) {
-    return datas;
-  }
-
-  if (service.state.session && service.state.session.msg) {
-    datas.push(...service.state.session.msg);
-  }
-
-  if (service.state.responseReason) {
-    datas.push(service.state.responseReason);
-  }
-
-  console.log("msg ", datas);
-  return datas;
-})
+  .then(() => console.log("login success"))
+  .catch(error => message.error(error.msg || "服务器错误！"));
 
 const toolbar = ref();
 const toolbarWidth: Ref<number> = ref(12);
@@ -126,6 +88,10 @@ function openModalDialog() {
 function onModalClose() {
 }
 
+function onPromptInputHandler() {
+  service.onInputPressEnter();
+}
+
 </script>
 
 <template>
@@ -136,8 +102,8 @@ function onModalClose() {
     },
   }">
     <div ref="toolbar" :class="['toolbar', toolbarAnimationClass]">
-      <Chatbox v-show="service.state.status === STATUS.RESPONSEING" :title="service.state.session?.title" :msgs="msgs"
-        class="chat-box" />
+      <Chatbox v-if="service.state.status === STATUS.RESPONSEING && service.session"
+        :title="service.session.state.title || '新的对话'" :msgs="service.session.allMsgs.value" class="chat-box" />
 
       <div class="flex flex-row justify-start items-center gap-2 ddkj-loading"
         v-if="service.state.status === STATUS.CONNECTIING">
@@ -149,7 +115,7 @@ function onModalClose() {
         <Icon icon="hugeicons:ai-chat-02" class="logo" />
 
         <Input v-model:value="service.state.inputContext" class="flex-1 input" :bordered="false" placeholder="请输入指令"
-          :disabled="service.state.status !== STATUS.CONNECTED" @pressEnter="service.onInputPressEnter()" />
+          :disabled="service.state.status !== STATUS.CONNECTED" @pressEnter="onPromptInputHandler" />
 
         <Divider type="vertical" />
 

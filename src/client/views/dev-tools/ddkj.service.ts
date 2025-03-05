@@ -1,5 +1,5 @@
 import { ResultEnum } from "@/client/service/request/vaxios";
-import { AiSession } from "@/client/service/sse/modal/aisession";
+import AiSession from "@/client/service/sse/modal/aisession";
 import AiMessage from "@/client/service/sse/modal/aimessage";
 import { message } from "ant-design-vue";
 import { inject, InjectionKey, reactive } from "vue";
@@ -21,8 +21,6 @@ enum STATUS {
 interface State {
     status: STATUS,
     inputContext: string,
-    session?: AiSession,
-    responseReason?: AiMessage;
 }
 
 export default class DdkjService {
@@ -35,12 +33,17 @@ export default class DdkjService {
 
     state: State;
 
+    session?: AiSession;
+
     constructor() {
         this.state = reactive({
             showChats: false,
             status: STATUS.CONNECTIING,
             inputContext: ''
         });
+
+        // this.session = new AiSession("test", "创建患者模型");
+        // this.state.status = STATUS.RESPONSEING;
     }
 
     getUrlQueryParam(name: string) {
@@ -53,7 +56,7 @@ export default class DdkjService {
 
     ddkjLogin(useParam?: boolean) {
         return new Promise((reslove, reject) => {
-            const urlParam = this.getUrlQueryParam("ddkj");            
+            const urlParam = this.getUrlQueryParam("ddkj");
             let token = useParam ? urlParam : sessionStorage.getItem("ddkjDesignToken");
             if (!token) {
                 token = urlParam;
@@ -63,16 +66,18 @@ export default class DdkjService {
                 if (res.state === ResultEnum.SUCCESS && res.data) {
                     sessionStorage.setItem('ddkjDesignToken', res.data.token);
                     this.state.status = STATUS.CONNECTED;
-                    reslove({});
+                    reslove(res);
+
                 } else {
                     const storeToken = sessionStorage.getItem("ddkjDesignToken");
                     if (storeToken) {
                         sessionStorage.removeItem("ddkjDesignToken");
                         this.ddkjLogin(true);
                     } else {
-                        reject({});
+                        reject(res);
                     }
                 }
+
             }).catch((error) => {
                 const storeToken = sessionStorage.getItem("ddkjDesignToken");
                 if (storeToken) {
@@ -81,6 +86,7 @@ export default class DdkjService {
                 } else {
                     reject(error);
                 }
+
             });
         });
     }
@@ -93,17 +99,48 @@ export default class DdkjService {
 
         if (this.state.inputContext && this.state.inputContext.length > 0) {
             this.state.status = STATUS.REQUESETNEWTASK;
-            toolApi.say(this.state.inputContext).then(res => {
-                if (res.state !== ResultEnum.SUCCESS) {
-                    message.error(res.msg);
-                    this.state.status = STATUS.CONNECTED;
-                } else {
-                    this.state.session = { title: this.state.inputContext, sessionId: '', msg: [] } as AiSession;
-                    this.state.status = STATUS.RESPONSEING;
-                    this.state.inputContext = "";
-                }
+            return toolApi.say(this.state.inputContext).then((response) => {
+                response.onData((event) => this.onStreamDataHandler(event));
+                response.onEnd(() => this.onStreamEnd());
+                response.onError((event) => this.onStreamError(event));
             });
+
+        } else {
+            message.error("请输入指令！");
+
         }
+    }
+
+    onStreamDataHandler(event: any) {
+        console.log("on stream data handler", event);
+        
+        if (event.name === "TaskCreate") {
+            this.state.status = STATUS.RESPONSEING;
+            this.session = new AiSession(event.id, this.state.inputContext);
+            this.state.inputContext = '';
+
+        } else if (event.name === "reason") {
+            const reasonData = event.data;
+            const reason = { content: reasonData.msg, finished: reasonData.finished, role: "assistant" } as AiMessage;
+            if (this.session) {
+                this.session.setLastedMsg(reason);
+            }
+    
+            console.log("sse reasson ", this.state);
+
+        }
+    }
+
+    onStreamEnd() {
+        setTimeout(() => {
+            this.state.status = STATUS.CONNECTED;
+            this.session = undefined;
+        }, 2000);
+    }
+
+    onStreamError(error: any) {
+        this.onStreamEnd();
+        message.error(error.msg || "系统错误");
     }
 
     onClickStopResponse() {
@@ -111,52 +148,6 @@ export default class DdkjService {
             this.state.inputContext = '';
             this.state.status = STATUS.CONNECTED;
         }
-    }
-
-
-    sseHandler(event: any) {
-        if (event.data && event.data === "connected") {
-            console.log("sse connected");
-            if (this.state.status === STATUS.CONNECTIING) {
-                this.state.status = STATUS.CONNECTED;
-            }
-        }
-    }
-
-    startSession(sessionId: string) {
-        this.state.status = STATUS.RESPONSEING;
-        if (this.state.session) {
-            this.state.session.sessionId = sessionId;
-        }
-    }
-
-    complateTask() {
-        setTimeout(() => {
-            this.state.status = STATUS.CONNECTED;
-            this.state.session = undefined;
-            this.state.responseReason = undefined;
-        }, 2000);
-    }
-
-    sseReasonHandler(event: any) {
-        if (!event || !event.data) {
-            return;
-        }
-
-        const data = JSON.parse(event.data);
-        const reason = { ...data, type: 'reason' } as AiMessage;
-        if (this.state.session) {
-            if (!reason.finished) {
-                this.state.responseReason = reason;
-
-            } else if (this.state.session) {
-                this.state.session.msg.push(reason);
-                this.state.responseReason = undefined;
-
-            }
-        }
-
-        console.log("sse reasson ", this.state);
     }
 }
 

@@ -3,6 +3,7 @@ import { Avatar } from 'ant-design-vue';
 import { Icon } from '@iconify/vue';
 
 interface Prop {
+  role: string;
   msg: string;
   end?: boolean;
 }
@@ -11,7 +12,7 @@ const props = defineProps<Prop>();
 </script>
 
 <template>
-  <div class="bubble-container">
+  <div class="bubble-container  justify-start" v-if="props.role === 'assistant'">
     <Avatar class="avatar">
       <template #icon>
         <span class="anticon">
@@ -24,6 +25,17 @@ const props = defineProps<Prop>();
       <div class="controls"></div>
     </div>
   </div>
+
+  <div class="bubble-container justify-end" v-else-if="props.role === 'user'">
+    <div class="bubble send">
+      <div class="msg">{{ props.msg }}</div>
+      <div class="controls"></div>
+    </div>
+  </div>
+
+  <div class="system-tip" v-else>
+    {{ props.msg }}
+  </div>
 </template>
 
 <style lang="less" scoped>
@@ -32,7 +44,6 @@ const props = defineProps<Prop>();
   height: auto;
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
   align-items: flex-start;
   gap: 12px;
 
@@ -61,6 +72,12 @@ const props = defineProps<Prop>();
       padding: 0px 4px;
       cursor: pointer;
     }
+
+    .send {
+      color: #000000f0;
+      padding: 0px 4px;
+      cursor: pointer;
+    }
   }
 
   .receive {
@@ -85,6 +102,38 @@ const props = defineProps<Prop>();
       background-color: #F0F0F0;
       border-bottom-right-radius: 14px;
     }
+  }
+
+  .send {
+    &::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      height: 25px;
+      right: -10px;
+      width: 23px;
+      background-color: #fff;
+      border-bottom-left-radius: 16px 14px;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      height: 25px;
+      right: -26px;
+      width: 26px;
+      background-color: #F0F0F0;
+      border-bottom-left-radius: 14px;
+    }
+  }
+
+  .system-tip {
+    color: #000000f0;
+    font-size: 11px;
+    width: 100%;
+    line-height: 20px;
+    text-align: center;
   }
 }
 </style>

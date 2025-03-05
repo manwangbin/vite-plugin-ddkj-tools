@@ -2,6 +2,7 @@ import { Auth } from "@/client/typings/auth";
 import BaseApi from "./base.api";
 import { viteClient } from "./ws.api";
 import { ContentTypeEnum, ResultData } from "./modal/request";
+import WsStreamHolder from "./wsStreamHolder";
 
 class ToolApi extends BaseApi {
 
@@ -30,7 +31,7 @@ class ToolApi extends BaseApi {
     }
 
     say(content: string) {
-        return viteClient.post(
+        return viteClient.post<WsStreamHolder>(
             {
                 url: `${this.baseUri}/say`,
                 data: { content },
@@ -38,7 +39,8 @@ class ToolApi extends BaseApi {
                     "Content-Type": ContentTypeEnum.FORM_DATA,
                     "Connection": "keep-alive",
                     "Keep-Alive": "timeout=300"
-                }
+                },
+                responseType: "stream"
             }
         )
     }
