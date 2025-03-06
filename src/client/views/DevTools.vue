@@ -7,10 +7,11 @@ import MenuDialog from '../menu/MenuDialog.vue';
 import ModalPage from '../modal/ModalPage.vue';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import DdkjService, { STATUS } from './ddkj.service';
-import Chatbox from '@/client/components/chatbox.vue';
+import Chatbox from '@/client/components/ai/chatbox.vue';
 import 'virtual:uno.css';
 import { registSseHandler } from '@/client/api/ws.api';
 import TaskCreate from '@/client/api/modal/taskCreateResult';
+import ViewPage from './page/ViewPage.vue';
 
 const screenWidth = ref(document.body.clientWidth);
 const screenHeight = ref(document.body.clientHeight);
@@ -92,6 +93,13 @@ function onPromptInputHandler() {
   service.onInputPressEnter();
 }
 
+const viewDialog = ref();
+function openViewDialog() {
+  if (viewDialog.value) {
+    viewDialog.value.openDialog();
+  }
+}
+
 </script>
 
 <template>
@@ -140,7 +148,7 @@ function onPromptInputHandler() {
 
           <Tooltip>
             <template #title>页面设计</template>
-            <div class="flex flex-row justify-center items-center action wj" @click="openTreeDialog">
+            <div class="flex flex-row justify-center items-center action wj" @click="openViewDialog">
               <Icon icon="qlementine-icons:page-setup-16" />
             </div>
           </Tooltip>
@@ -150,6 +158,7 @@ function onPromptInputHandler() {
       <MenuDialog ref="menuDialog" />
       <ModalPage ref="modalDialog" :screen-height="screenHeight" :ai-edit="service.state.status === STATUS.RESPONSEING"
         @close="onModalClose" />
+      <ViewPage ref="viewDialog" />
     </div>
   </ConfigProvider>
 </template>

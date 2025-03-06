@@ -2,7 +2,7 @@
 import Bubble from './bubble.vue';
 import { Icon } from '@iconify/vue';
 import { watch, ref } from 'vue';
-import AiMessage from '../api/modal/aimessage';
+import AiMessage from '../../api/modal/aimessage';
 
 const props = defineProps<{ title?: string, msgs: Array<AiMessage> }>();
 

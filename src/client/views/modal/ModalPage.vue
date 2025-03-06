@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Card, Modal, Tooltip, Tree, Button } from 'ant-design-vue';
+import { Modal, Tooltip, Tree, Button, Input } from 'ant-design-vue';
 import { computed, reactive, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import ModalTreeNode from '@/client/typings/modal/modal-tree-node';
@@ -251,19 +251,24 @@ defineExpose({
         <div class="context">
             <div class="left">
                 <div class="toolbar">
-                    <Tooltip>
-                        <template #title>新建数据模型</template>
-                        <div class="flex flex-row justify-center items-center action" @click="onNewModal">
-                            <Icon icon="qlementine-icons:new-16" />
-                        </div>
-                    </Tooltip>
+                    <div class="title" style="padding: 0px 10px;">
+                        <Input style="width: 100%;" placeholder="输入关键字查找" size="small"/>
+                    </div>
+                    <div class="actions">
+                        <Tooltip>
+                            <template #title>新建数据模型</template>
+                            <div class="flex flex-row justify-center items-center action" @click="onNewModal">
+                                <Icon icon="qlementine-icons:new-16" />
+                            </div>
+                        </Tooltip>
 
-                    <Tooltip>
-                        <template #title>刷新</template>
-                        <div class="flex flex-row justify-center items-center action" @click="onRefreshTree">
-                            <Icon icon="hugeicons:reload" />
-                        </div>
-                    </Tooltip>
+                        <Tooltip>
+                            <template #title>刷新</template>
+                            <div class="flex flex-row justify-center items-center action" @click="onRefreshTree">
+                                <Icon icon="hugeicons:reload" />
+                            </div>
+                        </Tooltip>
+                    </div>
                 </div>
                 <Tree size="small" v-if="modalState.treeData?.length > 0" class="flex-1 tree"
                     :tree-data="modalState.treeData" :show-line="true" :show-icon="true" :default-expand-all="true"
@@ -271,21 +276,23 @@ defineExpose({
                     @select="(_, event) => onTreeSelected(event)" />
             </div>
 
-            <Card size="small" class="right" v-if="modalState.dataForm"
-                :title="`${modalState.dataForm.title}[${modalState.dataForm.code || ''}]`">
-                <template #extra>
-                    <div class="save-btn" @click="onClickSave">
-                        <Icon icon="lucide-lab:save" style="font-size: 22px;" />
+            <div class="right" v-if="modalState.dataForm">
+                <div class="toolbar">
+                    <div class="title">{{ modalState.dataForm.title || '' }}[{{ modalState.dataForm.code || '' }}]</div>
+                    <div class="actions">
+                        <div class="save-btn" @click="onClickSave">
+                            <Icon icon="lucide-lab:save" style="font-size: 22px;" />
+                        </div>
                     </div>
-                </template>
+                </div>
                 <div>
                     <BaseInfoForm ref="basicForm" :categories="categoryOptions" :fields="modalFieldValues"
                         :form="modalState.dataForm" />
 
                     <div class="flex flex-row justify-between sub-title-bar">
-                        <div class="title">属性列表</div>
+                        <div class="title">字段列表</div>
                         <div><Button v-show="!aiEdit" size="small" type="primary"
-                                @click="onClickNewField">创建新属性</Button>
+                                @click="onClickNewField">添加字段</Button>
                         </div>
                     </div>
 
@@ -293,7 +300,7 @@ defineExpose({
                         :fields="modalFieldValues" :ai-edit="aiEdit" @edit="onClickEditField" @delete="onClickDelField"
                         @sort="onFieldDataSort" />
                 </div>
-            </Card>
+            </div>
         </div>
 
         <EditModalDialog ref="editModalDialog" :categories="categoryOptions" @ok="onModalInfoDialogOk" />
@@ -327,52 +334,69 @@ defineExpose({
         }
     }
 
-    .left {
+    .context {
         display: flex;
-        flex-direction: column;
-        width: 240px;
+        flex-direction: row;
+        gap: 1px;
+        width: 100%;
         height: calc(100vh - 50px);
-        border-radius: 4px;
 
         .toolbar {
             display: flex;
             flex-direction: row;
-            justify-content: flex-start;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            padding: 0px 6px;
+
+            padding: 10px 0px;
             height: 30px;
             margin-bottom: 1px;
             border-radius: 4px 4px 0px 0px;
-            background-color: #141414;
 
-            .action {
-                cursor: pointer;
-                padding: 4px;
-                font-size: 18px;
-                border-radius: 4px;
-                color: @color-primary;
+
+            .title {
+                font-size: 15px;
+                font-weight: bolder;
+            }
+
+            .actions {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 10px;
+
+                .action {
+                    cursor: pointer;
+                    padding: 4px;
+                    font-size: 18px;
+                    border-radius: 4px;
+                    color: @color-primary;
+                }
             }
         }
 
-        .tree {
-            flex: 1;
+        .left {
+            display: flex;
+            flex-direction: column;
             width: 240px;
-            overflow: auto;
-            padding: 6px;
-            border-radius: 0px 0px 4px 4px;
-        }
-    }
+            height: calc(100vh - 50px);
+            border-radius: 4px 0px 0px 4px;
+            background-color: #141414;
 
-    .context {
-        display: flex;
-        flex-direction: row;
-        gap: 6px;
-        width: 100%;
-        height: calc(100vh - 50px);
+            .tree {
+                flex: 1;
+                width: 240px;
+                overflow: auto;
+                padding: 6px;
+                border-radius: 0px 0px 4px 4px;
+            }
+        }
 
         .right {
-            width: 100%;
+            width: calc(100% - 20px);
+            padding: 0px 10px;
+            border-radius: 0px 4px 4px 0px;
+            background-color: #141414;
 
             .save-btn {
                 cursor: pointer;
