@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Bubble from './bubble.vue';
-import AiMessage from '../service/sse/modal/aimessage';
 import { Icon } from '@iconify/vue';
 import { watch, ref } from 'vue';
+import AiMessage from '../api/modal/aimessage';
 
 const props = defineProps<{ title?: string, msgs: Array<AiMessage> }>();
 
@@ -17,23 +17,21 @@ function scrollToBottom() {
 </script>
 
 <template>
-  <div class="flex flex-col justify-start items-start gap-10px chat-container">
+  <div class="chat-container">
     <div class="flex flex-row justify-between items-center title-bar">
       <div class="title">{{ props.title }}</div>
-      <div>
+      <div class="loading-btn">
         <Icon icon="svg-spinners:90-ring-with-bg" />
       </div>
     </div>
-    <div ref="chatbox" class="chatbox">
-      <Bubble :role="item.role" :msg="item.content" v-for="(item, index) in props.msgs"  :key="index" />
+    <div ref="chatbox" class="flex flex-col justify-start items-start gap-10px chatbox">
+      <Bubble :role="item.role" :msg="item.content" :end="item.finished" v-for="(item, index) in props.msgs"  :key="index" />
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
 .chat-container {
-  
-
   .title-bar {
     width: 100%;
     color: #fffffff0;
@@ -42,6 +40,13 @@ function scrollToBottom() {
 
     .title {
       font-size: 13px;
+    }
+
+    .loading-btn {
+      cursor: pointer;
+      font-size: 20px;
+      width: fit-content;
+      height: fit-content;
     }
   }
 

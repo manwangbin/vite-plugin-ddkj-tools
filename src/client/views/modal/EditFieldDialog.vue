@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import FormField from '@/client/service/api/modal/formfield';
-import ModalTreeNode from '@/client/service/api/modal/modal-tree-node';
-import BooleanType from '@/client/service/api/modal/type/boolean.type';
-import DateType from '@/client/service/api/modal/type/date.type';
-import NumberType from '@/client/service/api/modal/type/number.type';
-import StringType from '@/client/service/api/modal/type/string.type';
-import StructType from '@/client/service/api/modal/type/struct.type';
+import FormField from '@/client/typings/modal/formfield';
+import ModalTreeNode from '@/client/typings/modal/modal-tree-node';
+import BooleanType from '@/client/typings/modal/type/boolean.type';
+import DateType from '@/client/typings/modal/type/date.type';
+import NumberType from '@/client/typings/modal/type/number.type';
+import StringType from '@/client/typings/modal/type/string.type';
+import StructType from '@/client/typings/modal/type/struct.type';
 import { Col, Form, FormInstance, FormItem, Input, InputNumber, Modal, Row, Select, SelectOption, Switch, TreeSelect } from 'ant-design-vue';
 import { Rule } from 'ant-design-vue/es/form';
 import { reactive, Ref, ref } from 'vue';

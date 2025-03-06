@@ -2,10 +2,10 @@
 import { Card, Modal, Tooltip, Tree, Button } from 'ant-design-vue';
 import { computed, reactive, ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import ModalTreeNode from '@/client/service/api/modal/modal-tree-node';
-import DataForm from '@/client/service/api/modal/dataform';
+import ModalTreeNode from '@/client/typings/modal/modal-tree-node';
+import DataForm from '@/client/typings/modal/dataform';
 import EditFieldDialog from './EditFieldDialog.vue';
-import FormField from '@/client/service/api/modal/formfield';
+import FormField from '@/client/typings/modal/formfield';
 import FieldTable from './components/FieldTable.vue';
 import BaseInfoForm from './components/BaseInfoForm.vue';
 import EditModalDialog from './EditModalDialog.vue';

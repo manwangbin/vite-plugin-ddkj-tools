@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import DataForm from '@/client/service/api/modal/dataform';
+import DataForm from '@/client/typings/modal/dataform';
 import { AutoComplete, Form, FormInstance, Input, Modal } from 'ant-design-vue';
 import { FormItem, Rule } from 'ant-design-vue/es/form';
 import { computed, reactive, Ref, ref } from 'vue';

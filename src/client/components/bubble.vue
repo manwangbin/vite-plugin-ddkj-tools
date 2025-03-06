@@ -5,7 +5,7 @@ import { Icon } from '@iconify/vue';
 interface Prop {
   role: string;
   msg: string;
-  end?: boolean;
+  end: boolean;
 }
 
 const props = defineProps<Prop>();
@@ -20,16 +20,20 @@ const props = defineProps<Prop>();
         </span>
       </template>
     </Avatar>
-    <div class="bubble receive">
+    <div class="bubble receive" :class="{'reasoning' : !props.end}">
       <div class="msg">{{ props.msg }}</div>
-      <div class="controls"></div>
+      <div class="flex flex-row justify-between item-center controls" v-show="!props.end">
+        <div>正在思考</div>
+        <div>
+          <Icon icon="svg-spinners:90-ring-with-bg" />
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="bubble-container justify-end" v-else-if="props.role === 'user'">
     <div class="bubble send">
       <div class="msg">{{ props.msg }}</div>
-      <div class="controls"></div>
     </div>
   </div>
 
@@ -54,6 +58,7 @@ const props = defineProps<Prop>();
   }
 
   .bubble {
+    min-width: 60px;
     position: relative;
     padding: 10px 12px;
     font-size: 12px;
@@ -78,6 +83,17 @@ const props = defineProps<Prop>();
       padding: 0px 4px;
       cursor: pointer;
     }
+
+    .controls {
+      padding-top: 6px;
+      font-size: 10px;
+      color: @color-primary;
+      line-height: 14px;
+    }
+  }
+
+  .reasoning {
+    padding-bottom: 4px !important;
   }
 
   .receive {

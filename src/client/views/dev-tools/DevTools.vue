@@ -9,8 +9,8 @@ import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import DdkjService, { STATUS } from './ddkj.service';
 import Chatbox from '@/client/components/chatbox.vue';
 import 'virtual:uno.css';
-import TaskCreate from '@/client/service/sse/modal/taskCreateResult';
 import { registSseHandler } from '@/client/api/ws.api';
+import TaskCreate from '@/client/api/modal/taskCreateResult';
 
 const screenWidth = ref(document.body.clientWidth);
 const screenHeight = ref(document.body.clientHeight);

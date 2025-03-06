@@ -1,9 +1,9 @@
-import { ResultEnum } from "@/client/service/request/vaxios";
-import AiSession from "@/client/service/sse/modal/aisession";
-import AiMessage from "@/client/service/sse/modal/aimessage";
 import { message } from "ant-design-vue";
 import { inject, InjectionKey, reactive } from "vue";
 import toolApi from "@/client/api/tool.api";
+import AiSession from "@/client/api/modal/aisession";
+import { ResultEnum } from "@/client/api/modal/request";
+import AiMessage from "@/client/api/modal/aimessage";
 
 enum STATUS {
 

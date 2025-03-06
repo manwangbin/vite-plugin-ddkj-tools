@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import DataForm from '@/client/service/api/modal/dataform';
-import FormField from '@/client/service/api/modal/formfield';
+import DataForm from '@/client/typings/modal/dataform';
+import FormField from '@/client/typings/modal/formfield';
 import { AutoComplete, Checkbox, Col, Form, FormItem, Input, Row, Select } from 'ant-design-vue';
 import { FormInstance, Rule } from 'ant-design-vue/es/form';
 import { computed, Ref, ref, watch } from 'vue';

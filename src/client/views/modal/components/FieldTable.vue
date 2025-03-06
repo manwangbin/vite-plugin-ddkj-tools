@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import FormField from '@/client/service/api/modal/formfield';
-import ModalTreeNode from '@/client/service/api/modal/modal-tree-node';
+import FormField from '@/client/typings/modal/formfield';
+import ModalTreeNode from '@/client/typings/modal/modal-tree-node';
 import { DeleteOutlined, FormOutlined } from '@ant-design/icons-vue';
 import { Table, Tag, Tooltip } from 'ant-design-vue';
 
