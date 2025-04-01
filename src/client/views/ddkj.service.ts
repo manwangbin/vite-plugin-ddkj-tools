@@ -1,5 +1,5 @@
 import { message } from "ant-design-vue";
-import { inject, InjectionKey, reactive } from "vue";
+import { inject, InjectionKey, provide, reactive } from "vue";
 import toolApi from "@/client/api/tool.api";
 import AiSession from "@/client/api/modal/aisession";
 import { ResultEnum } from "@/client/api/modal/request";
@@ -41,6 +41,8 @@ export default class DdkjService {
             status: STATUS.CONNECTIING,
             inputContext: ''
         });
+
+        provide(DdkjService.token, this);
 
         // this.session = new AiSession("test", "创建患者模型");
         // this.state.status = STATUS.RESPONSEING;

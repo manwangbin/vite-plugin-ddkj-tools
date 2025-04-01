@@ -1,4 +1,3 @@
 <template>
-  <div>DDKJ Design Tools</div>
+  DDKJ Tool Demo
 </template>
-

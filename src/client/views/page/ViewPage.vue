@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Modal } from 'ant-design-vue';
 import Sender from '@/client/components/ai/sender.vue'
-import { registSseHandler, removeRegistHandler } from '@/client/api/ws.api';
 import DdkjService from '../ddkj.service';
 import Bubble from '@/client/components/ai/bubble.vue';
 import { reactive } from 'vue';
+import { registSseHandler, removeRegistHandler } from '@/client/api/ws.api';
 
 interface ModalState {
     open: boolean;
@@ -12,6 +12,8 @@ interface ModalState {
 const modalState:ModalState = reactive({open: false});
 const emit = defineEmits(['close']);
 const service = DdkjService.inject();
+console.log("sevice", service);
+
 
 const aiUpdateModal = (event: any) => {
     if (event.data) {
@@ -19,7 +21,7 @@ const aiUpdateModal = (event: any) => {
     }
 }
 
-const openModalDialog = () => {
+const openDialog = () => {
     if (!modalState.open) {
         registSseHandler("Modal", aiUpdateModal);
     }
@@ -33,12 +35,12 @@ const onClose = () => {
 }
 
 defineExpose({
-    openModalDialog
+    openDialog
 })
 </script>
 
 <template>
-    <Modal size="small" width="100%" v-model:open="modalState.open" title="页面设计" wrap-class-name="ddkj-data-modal"
+    <Modal size="small" width="100%" v-model:open="modalState.open" title="页面设计" wrap-class-name="ddkj-view"
         footer="" :centered="true" :mask="false" @cancel="onClose">
         <div class="context">
             <div class="left">
@@ -57,7 +59,7 @@ defineExpose({
 </template>
 
 <style lang="less">
-.ddkj-data-modal {
+.ddkj-view {
     overflow: hidden !important;
 
     .ant-modal {
@@ -85,7 +87,7 @@ defineExpose({
     .context {
         display: flex;
         flex-direction: row;
-        gap: 1px;
+        gap: 2px;
         width: 100%;
         height: calc(100vh - 50px);
 
@@ -94,7 +96,7 @@ defineExpose({
             flex-direction: column;
             flex: 1;
             height: calc(100vh - 50px);
-            border-radius: 4px 0px 0px 4px;
+            border-radius: 4px;
             background-color: #141414;
 
             .tree {
@@ -107,10 +109,10 @@ defineExpose({
         }
 
         .right {
-            width: 400px;
-            padding: 0px 10px;
-            border-radius: 0px 4px 4px 0px;
-            background-color: #141414;
+            width: 360px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #424242;
             display: flex;
             flex-direction: column;
 

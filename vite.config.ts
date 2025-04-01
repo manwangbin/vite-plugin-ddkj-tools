@@ -4,13 +4,10 @@ import path from 'path';
 import dts from 'vite-plugin-dts';
 import Inspect from 'vite-plugin-inspect';
 import UnoCSS from 'unocss/vite'
-// import {ddkjDevTools} from 'vite-plugin-ddkj-tools';
 import ddkjDevTools from './src/ddkj';
 
 export default defineConfig((configEnv) => {
   const isBuild = configEnv.command === 'build';
-  // const { ddkjDevTools } = ddkjTools;
-
   const plugins = [vue(), ...UnoCSS()];
   if (isBuild) {
     plugins.push(dts({
