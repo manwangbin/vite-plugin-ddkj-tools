@@ -1,5 +1,4 @@
 import { ViteHotContext } from "vite/types/hot.js";
-import { md5 } from 'js-md5';
 import WsStreamHolder from "./wsStreamHolder";
 
 const sseHandler:Map<string, Array<(event:any) => void>> = new Map();
@@ -35,7 +34,7 @@ export class ViteClient {
     sendApiRequest<T = any>(config: any) {
         return new Promise((reslove: (value: T) => void, reject) => {
             if (this.viteHotContext) {
-                const id = md5(JSON.stringify({ url: config.url, params: config.params, data: config.data }));
+                const id = JSON.stringify({ url: config.url, params: config.params, data: config.data });
                 const headerAuthor = config.headers && config.headers['Authorization'];
                 const localToken = sessionStorage.getItem("ddkjDesignToken");
                 if (!headerAuthor && localToken) {

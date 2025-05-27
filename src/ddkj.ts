@@ -41,6 +41,8 @@ function loadAppFile(code: string, id: string) {
     }
 
     const newCode = script + "\n" + template + "\n" + styles;
+    console.log("new code ", newCode);
+    
     return { code: newCode };
 }
 
@@ -60,14 +62,7 @@ export default function ddkjDevTools(): Plugin {
         },
 
         configureServer(server) {
-            startServer(server);
-            // server.ws.on('connection', (client) => {
-            //  client.send({"test": "ok"})
-            // });
-
-            // server.ws.on('my:from-client', (data, client) => {
-            //     console.log("recive", data);
-            // })
+            // startServer(server);
         },
         sharedDuringBuild: true,
     }
