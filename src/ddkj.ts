@@ -1,6 +1,5 @@
 import { Plugin } from "vite";
 import { parse } from "@vue/compiler-sfc";
-import startServer from "./server/server";
 
 function loadAppFile(code: string, id: string) {
     const res = parse(code, { sourceMap: false, filename: id, templateParseOptions: { parseMode: 'sfc' } });
@@ -15,10 +14,14 @@ function loadAppFile(code: string, id: string) {
     script += "\n</script>";
 
     let template = "<template>\n";
+    template += "  <div class=\"ddkj-vite-tools-main\">\n"
+    template += "    <div class=\"ddkj-vite-tools-container\">\n"
     if (res.descriptor.template?.content) {
         template += res.descriptor.template.content;
     }
-    template += "  <TDevTools />\n";
+    template += "    </div>\n";
+    template += "    <TDevTools />\n";
+    template += "  </div>\n";
     template += "</template>";
 
     let styles = '';
@@ -40,9 +43,7 @@ function loadAppFile(code: string, id: string) {
         });
     }
 
-    const newCode = script + "\n" + template + "\n" + styles;
-    console.log("new code ", newCode);
-    
+    const newCode = script + "\n" + template + "\n" + styles;    
     return { code: newCode };
 }
 
@@ -61,9 +62,9 @@ export default function ddkjDevTools(): Plugin {
             }
         },
 
-        configureServer(server) {
-            // startServer(server);
-        },
+        // configureServer(server) {
+        //     startServer(server);
+        // },
         sharedDuringBuild: true,
     }
 }

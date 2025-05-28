@@ -5,6 +5,7 @@ import dts from 'vite-plugin-dts';
 import Inspect from 'vite-plugin-inspect';
 import UnoCSS from 'unocss/vite'
 import ddkjTools from 'vite-plugin-ddkj-tools';
+// import {ddkjDevTools} from './src/index'
 
 export default defineConfig((configEnv) => {
   const isBuild = configEnv.command === 'build';
@@ -19,7 +20,7 @@ export default defineConfig((configEnv) => {
   } else {
     plugins.push(
       Inspect(),
-      ddkjDevTools(),
+      ddkjDevTools()
     );
   }
 
