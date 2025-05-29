@@ -5,7 +5,7 @@ import axios from 'axios';
 const API_BASE = "http://127.0.0.1:8002/api";
 
 export default function startServer(server: ViteDevServer) {
-    server.hot.on("ddkj:apiRequest", (data: ClientRequest, client: any) => {
+    server.ws.on("ddkj:apiRequest", (data: ClientRequest, client: any) => {
         const streamResponse = data.responseType === "stream";
         axios(
             {

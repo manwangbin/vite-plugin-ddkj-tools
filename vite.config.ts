@@ -71,6 +71,6 @@ export default defineConfig((configEnv) => {
 
     plugins: [
       ...plugins,
-    ]
+    ],
   };
 })

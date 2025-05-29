@@ -36,9 +36,7 @@ class ToolApi extends BaseApi {
                 url: `${this.baseUri}/say`,
                 data: { content },
                 headers: {
-                    "Content-Type": ContentTypeEnum.FORM_DATA,
-                    "Connection": "keep-alive",
-                    "Keep-Alive": "timeout=300"
+                    "Content-Type": ContentTypeEnum.FORM_URLENCODED,
                 },
                 responseType: "stream"
             }

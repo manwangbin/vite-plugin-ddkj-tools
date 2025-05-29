@@ -132,7 +132,7 @@ function openViewDialog() {
         </div>
 
         <div v-else class="flex flex-row justify-end items-center gap-2">
-          <Tooltip>
+          <!-- <Tooltip>
             <template #title>数据模型</template>
             <div class="flex flex-row justify-center items-center action zl" @click="openModalDialog">
               <Icon icon="fluent:form-24-regular" />
@@ -144,10 +144,10 @@ function openViewDialog() {
             <div class="flex flex-row justify-center items-center action dz" @click="openTreeDialog">
               <Icon icon="icon-park-outline:tree-list" />
             </div>
-          </Tooltip>
+          </Tooltip> -->
 
           <Tooltip>
-            <template #title>页面设计</template>
+            <template #title>添加页面</template>
             <div class="flex flex-row justify-center items-center action wj" @click="openViewDialog">
               <Icon icon="qlementine-icons:page-setup-16" />
             </div>
@@ -158,7 +158,6 @@ function openViewDialog() {
       <MenuDialog ref="menuDialog" />
       <ModalPage ref="modalDialog" :screen-height="screenHeight" :ai-edit="service.state.status === STATUS.RESPONSEING"
         @close="onModalClose" />
-      <ViewPage ref="viewDialog" />
     </div>
   </ConfigProvider>
 </template>
