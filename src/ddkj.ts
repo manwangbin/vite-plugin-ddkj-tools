@@ -48,7 +48,7 @@ function loadAppFile(code: string, id: string) {
     return { code: newCode };
 }
 
-export default function ddkjDevTools(): Plugin {
+export default function ddkjDevTools(appId: number): Plugin {
     return {
         name: 'vite-plugin-ddkj-tools',
         apply: 'serve',
@@ -64,8 +64,9 @@ export default function ddkjDevTools(): Plugin {
         },
 
         configureServer(server) {
-            startServer(server);
+            startServer(appId, server);
         },
+
         sharedDuringBuild: true,
     }
 }

@@ -3,8 +3,31 @@ import ClientRequest from "./modal/clientRequest";
 import axios from 'axios';
 
 const API_BASE = "http://127.0.0.1:8002/api";
+const textDecoder = new TextDecoder();
 
-export default function startServer(server: ViteDevServer) {
+function updateDevNum(appId: number, number: number) {
+    axios({
+        url: `${API_BASE}/api/tool/account/dev-number`,
+        data: { appId, number },
+        method: 'get'
+    }).then(res => {
+        console.log("update dev number ", res);
+    }).catch(error => {
+        console.error("update dev number error", error);
+    })
+}
+
+export default function startServer(appId: number, server: ViteDevServer) {
+    server.ws.on("connection", (socket, request) => {
+        if (socket) {
+            socket.on("close", () => {
+                updateDevNum(appId, server.ws.clients.size || 0);
+            });
+        }
+
+        updateDevNum(appId, server.ws.clients.size || 0)
+    });
+
     server.ws.on("ddkj:apiRequest", (data: ClientRequest, client: any) => {
         const streamResponse = data.responseType === "stream";
         axios(
@@ -12,30 +35,37 @@ export default function startServer(server: ViteDevServer) {
                 ...data,
                 url: `${API_BASE}${data.url}`
             }
-        ).then(res => {
-            if (streamResponse) {
-                res.data.on('data', (chunk: Buffer) => {
-                    const chunkData = chunk.toString('utf8');
-                    try {
-                        client.send("ddkj:streamData", {...JSON.parse(chunkData), id: data.id});
-                    } catch(e) {
-                        client.send("ddkj:streamData", {data: chunkData, id: data.id});
-                    }
-                });
-
-                res.data.on('end', () => {
-                    client.send("ddkj:streamEnd", { id: data.id });
-                });
-
-                res.data.on("error", (error: any) => {
-                    client.send("ddkj:streamError", error);
-                    console.error("stream error", {id: data.id, error});
-                });
-
+        ).then(async (res) => {
+            if (res.status !== 200) {
+                client.send("ddkj:streamError", res.statusText);
+                console.error("stream error", { id: data.id, error: res.statusText });
             } else {
-                const resData = { ...res.data, id: data.id };
-                client.send("ddkj:apiResponse", resData);
-                console.log("send response", resData);
+                if (streamResponse) {
+                    console.log("res.data", res.data);
+                    const reader = res.data.getReader();
+
+                    let end = false;
+                    do {
+                        const { done, value } = await reader.read();
+                        if (value) {
+                            const chunkData = textDecoder.decode(value);
+                            client.send("ddkj:streamData", { ...JSON.parse(chunkData), id: data.id });
+                        }
+
+                        if (done) {
+                            client.send("ddkj:streamEnd", { id: data.id });
+                        }
+
+                        end = done;
+                        console.log("reader ", done, textDecoder.decode(value));
+                    } while (!end)
+
+                } else {
+                    const resData = { ...res.data, id: data.id };
+                    client.send("ddkj:apiResponse", resData);
+                    console.log("send response", resData);
+
+                }
 
             }
 
