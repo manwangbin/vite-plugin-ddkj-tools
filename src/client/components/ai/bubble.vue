@@ -54,7 +54,7 @@ const props = defineProps<Prop>();
   .avatar {
     z-index: 10;
     margin-top: 4px;
-    background-color: @color-primary;
+    background-color: @ddkj-primary;
   }
 
   .bubble {
@@ -87,7 +87,7 @@ const props = defineProps<Prop>();
     .controls {
       padding-top: 6px;
       font-size: 10px;
-      color: @color-primary;
+      color: @ddkj-primary;
       line-height: 14px;
     }
   }

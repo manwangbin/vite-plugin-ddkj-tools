@@ -7,11 +7,11 @@ const textDecoder = new TextDecoder();
 
 function updateDevNum(appId: number, number: number) {
     axios({
-        url: `${API_BASE}/api/tool/account/dev-number`,
-        data: { appId, number },
+        url: `${API_BASE}/tool/account/dev-number`,
+        params: { appId, number },
         method: 'get'
-    }).then(res => {
-        console.log("update dev number ", res);
+    }).then((res) => {
+        
     }).catch(error => {
         console.error("update dev number error", error);
     })
@@ -30,6 +30,7 @@ export default function startServer(appId: number, server: ViteDevServer) {
 
     server.ws.on("ddkj:apiRequest", (data: ClientRequest, client: any) => {
         const streamResponse = data.responseType === "stream";
+        console.log("begin send request ", data);
         axios(
             {
                 ...data,

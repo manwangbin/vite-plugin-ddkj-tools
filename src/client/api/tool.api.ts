@@ -1,8 +1,9 @@
-import { Auth } from "@/client/typings/auth";
 import BaseApi from "./base.api";
 import { viteClient } from "./ws.api";
 import { ContentTypeEnum, ResultData } from "./modal/request";
 import WsStreamHolder from "./wsStreamHolder";
+import AppMenu from "./modal/app-menu";
+import DdkjAccount from "./modal/ddkj-account";
 
 class ToolApi extends BaseApi {
 
@@ -11,7 +12,7 @@ class ToolApi extends BaseApi {
     }
 
     login(token: string) {
-        return viteClient.get<ResultData<Auth.LoginToken>>(
+        return viteClient.get<ResultData<DdkjAccount>>(
             {
                 url: `${this.baseUri}/login`,
                 params: { token },
@@ -39,6 +40,14 @@ class ToolApi extends BaseApi {
                     "Content-Type": ContentTypeEnum.FORM_URLENCODED,
                 },
                 responseType: "stream"
+            }
+        )
+    }
+
+    getAppMenus() {
+        return viteClient.get<ResultData<Array<AppMenu>>>(
+            {
+                url: `${this.baseUri}/app-menus`,
             }
         )
     }

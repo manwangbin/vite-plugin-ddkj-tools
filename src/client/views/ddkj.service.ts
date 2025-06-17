@@ -4,6 +4,10 @@ import toolApi from "@/client/api/tool.api";
 import AiSession from "@/client/api/modal/aisession";
 import { ResultEnum } from "@/client/api/modal/request";
 import AiMessage from "@/client/api/modal/aimessage";
+import DdkjAccount from "../api/modal/ddkj-account";
+import { useDdkjToolStore } from "../store/ddkj.store";
+import { transformObjToRoute } from "../utils/routeHelper";
+import { RouteRecordRaw } from "vue-router";
 
 enum STATUS {
 
@@ -41,11 +45,7 @@ export default class DdkjService {
             status: STATUS.CONNECTIING,
             inputContext: ''
         });
-
         provide(DdkjService.token, this);
-
-        // this.session = new AiSession("test", "创建患者模型");
-        // this.state.status = STATUS.RESPONSEING;
     }
 
     getUrlQueryParam(name: string) {
@@ -56,40 +56,34 @@ export default class DdkjService {
         return context ? context : '';
     }
 
-    ddkjLogin(useParam?: boolean) {
-        return new Promise((reslove, reject) => {
-            const urlParam = this.getUrlQueryParam("ddkj");
-            let token = useParam ? urlParam : sessionStorage.getItem("ddkjDesignToken");
-            if (!token) {
-                token = urlParam;
+    ddkjLogin() {
+        return new Promise<DdkjAccount>((reslove, reject) => {
+            let token: any = this.getUrlQueryParam("ddkj");
+            if (!token || token.trim().length === 0) {
+                token = sessionStorage.getItem("ddkjDesignToken");
             }
 
-            toolApi.login(token).then(res => {
-                if (res.state === ResultEnum.SUCCESS && res.data) {
-                    sessionStorage.setItem('ddkjDesignToken', res.data.token);
-                    this.state.status = STATUS.CONNECTED;
-                    reslove(res);
+            if (!token) {
+                reject({ msg: '无效token' });
 
-                } else {
-                    const storeToken = sessionStorage.getItem("ddkjDesignToken");
-                    if (storeToken) {
-                        sessionStorage.removeItem("ddkjDesignToken");
-                        this.ddkjLogin(true);
+            } else {
+                toolApi.login(token).then(res => {
+                    if (res.state === ResultEnum.SUCCESS && res.data) {
+                        this.state.status = STATUS.CONNECTED;
+                        reslove(res.data);
+
                     } else {
-                        reject(res);
+                        sessionStorage.removeItem("ddkjDesignToken");
+                        reject({msg: res.msg})
+
                     }
-                }
 
-            }).catch((error) => {
-                const storeToken = sessionStorage.getItem("ddkjDesignToken");
-                if (storeToken) {
+                }).catch((error) => {
                     sessionStorage.removeItem("ddkjDesignToken");
-                    this.ddkjLogin(true);
-                } else {
                     reject(error);
-                }
 
-            });
+                });
+            }
         });
     }
 
@@ -115,7 +109,7 @@ export default class DdkjService {
 
     onStreamDataHandler(event: any) {
         console.log("on stream data handler", event);
-        
+
         if (event.name === "TaskCreate") {
             this.state.status = STATUS.RESPONSEING;
             this.session = new AiSession(event.id, this.state.inputContext);
@@ -127,8 +121,6 @@ export default class DdkjService {
             if (this.session) {
                 this.session.setLastedMsg(reason);
             }
-    
-            console.log("sse reasson ", this.state);
 
         }
     }
@@ -150,6 +142,27 @@ export default class DdkjService {
             this.state.inputContext = '';
             this.state.status = STATUS.CONNECTED;
         }
+    }
+
+    async getAppMenus() {
+       const res = await toolApi.getAppMenus();
+       console.log("load app menus", res);
+       
+       if (res.state !== ResultEnum.SUCCESS || !res.data) {
+        return false;
+       }
+
+       const appMenus = res.data;
+       const ddkjToolStore = useDdkjToolStore();
+
+       const routes = transformObjToRoute(appMenus);
+
+       console.log("transform menus", routes);
+       if (ddkjToolStore.router && routes) {
+        routes.forEach(item => ddkjToolStore.router.addRoute(item as RouteRecordRaw));
+       }
+
+       return true;
     }
 }
 

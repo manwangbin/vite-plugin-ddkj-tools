@@ -370,7 +370,7 @@ defineExpose({
                     padding: 4px;
                     font-size: 18px;
                     border-radius: 4px;
-                    color: @color-primary;
+                    color: @ddkj-primary;
                 }
             }
         }
@@ -401,7 +401,7 @@ defineExpose({
             .save-btn {
                 cursor: pointer;
                 font-size: 20px;
-                color: @color-primary;
+                color: @ddkj-primary;
             }
 
             .base-form {

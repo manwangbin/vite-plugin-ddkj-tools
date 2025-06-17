@@ -1,8 +1,9 @@
 import { default as  withInstall } from '../utils';
-import DevTools from './DevTools.vue';
+// import DevTools from './DevTools.vue';
+import Ide from './ide.vue';
 
-const TDevTools = withInstall(DevTools)
+const TIde = withInstall(Ide)
 export {
-    DevTools as TDevTools
+    Ide as TDevTools
 }
-export default TDevTools
+export default TIde

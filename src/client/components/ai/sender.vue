@@ -41,7 +41,7 @@ const props = withDefaults(defineProps<{ edit: boolean }>(), { edit: true });
         width: fit-content;
         height: fit-content;
         cursor: pointer;
-        color: @color-primary;
+        color: @ddkj-primary;
         font-size: 20px;
     }
 }

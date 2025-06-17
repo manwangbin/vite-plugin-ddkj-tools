@@ -20,7 +20,7 @@ export default defineConfig((configEnv) => {
   } else {
     plugins.push(
       Inspect(),
-      ddkjDevTools()
+      ddkjDevTools(1)
     );
   }
 

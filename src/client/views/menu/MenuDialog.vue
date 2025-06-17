@@ -32,6 +32,6 @@ defineExpose({
 
 <style lang="less" scoped>
 .menuDraw {
-    background: @color-background;
+    background: @ddkj-background;
 }
 </style>

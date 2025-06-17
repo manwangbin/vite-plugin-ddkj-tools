@@ -1,4 +1,4 @@
-import Type from "./type/type";
+import Type from "../type/type";
 
 export default interface FormField {
     code?: string;

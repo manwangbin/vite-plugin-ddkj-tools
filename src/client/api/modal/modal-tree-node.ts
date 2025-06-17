@@ -1,4 +1,4 @@
-import DataForm from "./dataform";
+import DataForm from "./form/dataform";
 
 export default interface ModalTreeNode {
 
